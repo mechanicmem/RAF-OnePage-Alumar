@@ -204,11 +204,25 @@
             cursor: zoom-in; /* Cursor de lupa */
         }
         
-        /* Botão de edição flutuante na imagem */
-        .edit-img-btn {
+        /* Botões de ação flutuantes na imagem */
+        .img-actions {
             position: absolute;
             top: 4px;
             right: 4px;
+            display: flex;
+            gap: 4px;
+            z-index: 10;
+            opacity: 0; /* Oculto por padrão */
+            transition: opacity 0.2s ease-in-out;
+        }
+        
+        /* Mostrar ações ao passar o mouse no container da imagem */
+        .image-upload-box:hover .img-actions,
+        .logo-upload-box:hover .img-actions {
+            opacity: 1;
+        }
+
+        .img-action-btn {
             background: rgba(255, 255, 255, 0.9);
             border: 1px solid #d1d5db;
             border-radius: 50%;
@@ -218,14 +232,19 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            z-index: 10;
             box-shadow: 0 1px 2px rgba(0,0,0,0.1);
             transition: all 0.2s;
+            color: #4b5563;
         }
-        .edit-img-btn:hover {
+        .img-action-btn:hover {
             background: #2563eb;
             color: white;
             border-color: #2563eb;
+        }
+        .img-action-btn.delete:hover {
+            background: #ef4444;
+            color: white;
+            border-color: #ef4444;
         }
         
         /* Logo Upload Específico - Redimensionável */
@@ -356,10 +375,16 @@
                         LOGO<br>EMPRESA
                     </div>
                     <img id="logoImg" class="uploaded-img hidden" src="" alt="Logo" onclick="openImageModal(this.src); event.stopPropagation()">
-                    <!-- Botão de Editar Logo (aparece via JS) -->
-                    <button id="btn-edit-logo" class="edit-img-btn hidden no-print" onclick="triggerUpload('logoInput'); event.stopPropagation()" title="Alterar Logo">
-                        <i class="fas fa-pen text-xs"></i>
-                    </button>
+                    
+                    <!-- Botões de Ação Logo -->
+                    <div id="actions-logoImg" class="img-actions hidden no-print">
+                        <button class="img-action-btn" onclick="triggerUpload('logoInput'); event.stopPropagation()" title="Alterar Logo">
+                            <i class="fas fa-pen text-[10px]"></i>
+                        </button>
+                        <button class="img-action-btn delete" onclick="removeImage('logoImg', 'logoPlaceholder', 'logoInput'); event.stopPropagation()" title="Remover Logo">
+                            <i class="fas fa-trash text-[10px]"></i>
+                        </button>
+                    </div>
                 </div>
                 
                 <div>
@@ -445,7 +470,11 @@
                                     <p class="text-[9px]">Evidência Operação 1</p>
                                 </div>
                                 <img id="view-imgDesc1" class="uploaded-img hidden" src="" alt="Evidencia" onclick="openImageModal(this.src); event.stopPropagation()">
-                                <button id="btn-edit-imgDesc1" class="edit-img-btn hidden no-print" onclick="triggerUpload('imgDesc1'); event.stopPropagation()" title="Alterar Imagem"><i class="fas fa-pen text-xs"></i></button>
+                                
+                                <div id="actions-view-imgDesc1" class="img-actions hidden no-print">
+                                    <button class="img-action-btn" onclick="triggerUpload('imgDesc1'); event.stopPropagation()"><i class="fas fa-pen text-[10px]"></i></button>
+                                    <button class="img-action-btn delete" onclick="removeImage('view-imgDesc1', 'ph-imgDesc1', 'imgDesc1'); event.stopPropagation()"><i class="fas fa-trash text-[10px]"></i></button>
+                                </div>
                             </div>
                             <!-- Imagem 2 -->
                             <div class="image-upload-box" id="box-imgDesc2" onclick="triggerUpload('imgDesc2')">
@@ -455,7 +484,11 @@
                                     <p class="text-[9px]">Evidência Operação 2</p>
                                 </div>
                                 <img id="view-imgDesc2" class="uploaded-img hidden" src="" alt="Evidencia" onclick="openImageModal(this.src); event.stopPropagation()">
-                                <button id="btn-edit-imgDesc2" class="edit-img-btn hidden no-print" onclick="triggerUpload('imgDesc2'); event.stopPropagation()" title="Alterar Imagem"><i class="fas fa-pen text-xs"></i></button>
+                                
+                                <div id="actions-view-imgDesc2" class="img-actions hidden no-print">
+                                    <button class="img-action-btn" onclick="triggerUpload('imgDesc2'); event.stopPropagation()"><i class="fas fa-pen text-[10px]"></i></button>
+                                    <button class="img-action-btn delete" onclick="removeImage('view-imgDesc2', 'ph-imgDesc2', 'imgDesc2'); event.stopPropagation()"><i class="fas fa-trash text-[10px]"></i></button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -484,7 +517,11 @@
                                     <p class="text-[9px]">Evidência Técnica 1</p>
                                 </div>
                                 <img id="view-imgEng1" class="uploaded-img hidden" src="" alt="Evidencia" onclick="openImageModal(this.src); event.stopPropagation()">
-                                <button id="btn-edit-imgEng1" class="edit-img-btn hidden no-print" onclick="triggerUpload('imgEng1'); event.stopPropagation()" title="Alterar Imagem"><i class="fas fa-pen text-xs"></i></button>
+                                
+                                <div id="actions-view-imgEng1" class="img-actions hidden no-print">
+                                    <button class="img-action-btn" onclick="triggerUpload('imgEng1'); event.stopPropagation()"><i class="fas fa-pen text-[10px]"></i></button>
+                                    <button class="img-action-btn delete" onclick="removeImage('view-imgEng1', 'ph-imgEng1', 'imgEng1'); event.stopPropagation()"><i class="fas fa-trash text-[10px]"></i></button>
+                                </div>
                             </div>
                             <!-- Imagem Eng 2 -->
                             <div class="image-upload-box" id="box-imgEng2" onclick="triggerUpload('imgEng2')">
@@ -494,7 +531,11 @@
                                     <p class="text-[9px]">Evidência Técnica 2</p>
                                 </div>
                                 <img id="view-imgEng2" class="uploaded-img hidden" src="" alt="Evidencia" onclick="openImageModal(this.src); event.stopPropagation()">
-                                <button id="btn-edit-imgEng2" class="edit-img-btn hidden no-print" onclick="triggerUpload('imgEng2'); event.stopPropagation()" title="Alterar Imagem"><i class="fas fa-pen text-xs"></i></button>
+                                
+                                <div id="actions-view-imgEng2" class="img-actions hidden no-print">
+                                    <button class="img-action-btn" onclick="triggerUpload('imgEng2'); event.stopPropagation()"><i class="fas fa-pen text-[10px]"></i></button>
+                                    <button class="img-action-btn delete" onclick="removeImage('view-imgEng2', 'ph-imgEng2', 'imgEng2'); event.stopPropagation()"><i class="fas fa-trash text-[10px]"></i></button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -518,16 +559,20 @@
                         </div>
                     </div>
 
-                    <!-- Ishikawa -->
-                    <div id="view-ishikawa" class="analysis-option flex-grow border border-gray-300 rounded bg-white p-1">
-                        <div class="image-upload-box bg-white h-full border-none" id="box-diagramImg" onclick="triggerUpload('diagramImg')">
+                    <!-- Ishikawa (Com correção de Overflow) -->
+                    <div id="view-ishikawa" class="analysis-option flex-grow border border-gray-300 rounded bg-white p-1 overflow-hidden relative">
+                        <div class="image-upload-box bg-white h-full w-full border-none" id="box-diagramImg" onclick="triggerUpload('diagramImg')">
                             <input type="file" id="diagramImg" class="hidden" accept="image/*" onchange="previewImage(this, 'view-diagramImg', 'ph-diagramImg')">
                             <div id="ph-diagramImg" class="text-center text-gray-400 placeholder-content">
                                 <i class="fas fa-chart-network text-4xl mb-2 text-gray-300"></i>
                                 <p class="text-xs">Arraste ou Clique para imagem do Diagrama</p>
                             </div>
                             <img id="view-diagramImg" class="uploaded-img hidden" src="" alt="Diagrama" onclick="openImageModal(this.src); event.stopPropagation()">
-                            <button id="btn-edit-diagramImg" class="edit-img-btn hidden no-print" onclick="triggerUpload('diagramImg'); event.stopPropagation()" title="Alterar Diagrama"><i class="fas fa-pen text-xs"></i></button>
+                            
+                            <div id="actions-view-diagramImg" class="img-actions hidden no-print">
+                                <button class="img-action-btn" onclick="triggerUpload('diagramImg'); event.stopPropagation()"><i class="fas fa-pen text-[10px]"></i></button>
+                                <button class="img-action-btn delete" onclick="removeImage('view-diagramImg', 'ph-diagramImg', 'diagramImg'); event.stopPropagation()"><i class="fas fa-trash text-[10px]"></i></button>
+                            </div>
                         </div>
                     </div>
 
@@ -741,13 +786,15 @@
                 const placeholderId = placeholders[id];
                 const placeholder = document.getElementById(placeholderId);
                 const parent = img.parentElement;
-                const btnEditId = 'btn-edit-' + id;
-                const btnEdit = document.getElementById(btnEditId);
+                
+                // Buscar container de ações dinâmico
+                const actionsId = 'actions-' + id;
+                const actions = document.getElementById(actionsId);
 
                 img.src = '';
                 img.classList.add('hidden');
                 if (placeholder) placeholder.classList.remove('hidden');
-                if (btnEdit) btnEdit.classList.add('hidden');
+                if (actions) actions.classList.add('hidden');
 
                 // Resetar bordas (exceto logo box que não muda classe)
                 if (!parent.classList.contains('logo-upload-box')) {
@@ -774,6 +821,28 @@
             });
 
             showToast("Formulário limpo com sucesso.");
+        }
+
+
+        // --- REMOVER IMAGEM ---
+        function removeImage(imgId, placeholderId, inputId) {
+            const img = document.getElementById(imgId);
+            const placeholder = document.getElementById(placeholderId);
+            const input = document.getElementById(inputId);
+            const actions = document.getElementById('actions-' + imgId);
+            const parent = placeholder.parentElement;
+
+            img.src = "";
+            img.classList.add('hidden');
+            placeholder.classList.remove('hidden');
+            if (actions) actions.classList.add('hidden');
+            if (input) input.value = ""; // Reset do input file
+
+            // Reset borders
+            if(!parent.classList.contains('logo-upload-box')) {
+                parent.classList.remove('border-solid');
+                parent.classList.add('border-dashed');
+            }
         }
 
 
@@ -856,13 +925,13 @@
             const img = document.getElementById(imgId);
             const placeholder = document.getElementById(placeholderId);
             const parent = placeholder.parentElement;
-            const btnEditId = 'btn-edit-' + imgId;
-            const btnEdit = document.getElementById(btnEditId);
+            const actionsId = 'actions-' + imgId;
+            const actions = document.getElementById(actionsId);
 
             img.src = base64Data;
             img.classList.remove('hidden');
             if(placeholder) placeholder.classList.add('hidden');
-            if(btnEdit) btnEdit.classList.remove('hidden'); // Show edit button
+            if(actions) actions.classList.remove('hidden'); // Show actions
             
             // Remove borda dashed e poe solid (exceto no logo que tem estilo fixo)
             if(!parent.classList.contains('logo-upload-box')) {
@@ -1103,7 +1172,7 @@
                 }
             }
 
-            // 2. Restaurar Imagens
+            // 2. Restaurar Imagens e Mostrar Botões
             const imgMap = {
                 'logoImg': 'logoPlaceholder',
                 'view-imgDesc1': 'ph-imgDesc1',
