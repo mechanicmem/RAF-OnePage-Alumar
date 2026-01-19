@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório de Análise de Falha (RAF)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            -webkit-print-color-adjust: exact;
+        }
+
+        /* Configuração A4 Paisagem */
+        .a4-landscape {
+            width: 297mm;
+            min-height: 210mm;
+            margin: 20px auto;
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            padding: 10mm; 
+            box-sizing: border-box;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Notificação Toast Customizada */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            background-color: #ef4444;
+            color: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            animation: slideIn 0.3s ease-out forwards;
+            max-width: 300px;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        /* Modal de Imagem (Lightbox) */
+        #image-modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        #image-modal img {
+            max-width: 90%;
+            max-height: 85vh;
+            object-fit: contain;
+            border: 2px solid white;
+            border-radius: 4px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        #image-modal .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        #image-modal .close-btn:hover {
+            color: #ef4444;
+        }
+
+        /* Estilos de Impressão */
+        @media print {
+            @page {
+                size: landscape;
+                margin: 0;
+            }
+            body {
+                background: white;
+                margin: 0;
+            }
+            .a4-landscape {
+                margin: 0;
+                box-shadow: none;
+                width: 100%;
+                height: 100vh;
+                padding: 8mm;
+            }
+            .no-print {
+                display: none !important;
+            }
+            input, textarea, select {
+                border: none !important;
+                background: transparent !important;
+                resize: none !important; /* Trava resize na impressão */
+                padding: 0;
+                appearance: none;
+            }
+            .analysis-option.hidden {
+                display: none !important;
+            }
+            .layout-hidden {
+                display: none !important;
+            }
+            /* Remove barras de rolagem e handles na impressão */
+            ::-webkit-scrollbar { display: none; }
+            * { overflow: visible !important; }
+            
+            /* Esconder seletores de layout na impressão */
+            .layout-selector-fade {
+                display: none !important;
+            }
+        }
+
+        /* Classes utilitárias */
+        .section-header {
+            background-color: #1e3a8a;
+            color: white;
+            padding: 0.3rem 0.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            margin-bottom: 0.3rem;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background-color 0.2s;
+        }
+        
+        .input-bare {
+            width: 100%;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 0.85rem;
+            transition: border-color 0.2s;
+        }
+        .input-bare:focus {
+            outline: none;
+            border-color: #2563eb;
+            background-color: #eff6ff;
+        }
+
+        /* Area de Upload de Imagem */
+        .image-upload-box {
+            border: 2px dashed #d1d5db;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            min-height: 40px; 
+            cursor: pointer;
+            overflow: hidden;
+            position: relative;
+            background-color: #f9fafb;
+            transition: all 0.2s ease;
+        }
+        .image-upload-box:hover {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+        .image-upload-box.drag-over {
+            border-color: #2563eb;
+            background-color: #dbeafe;
+            transform: scale(1.02);
+        }
+        .uploaded-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            cursor: zoom-in; /* Cursor de lupa */
+        }
+        
+        /* Botão de edição flutuante na imagem */
+        .edit-img-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #d1d5db;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+        .edit-img-btn:hover {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+        
+        /* Logo Upload Específico - Redimensionável */
+        .logo-upload-box {
+            width: 3.5rem; /* Inicial */
+            height: 3.5rem; /* Inicial */
+            min-width: 2rem;
+            min-height: 2rem;
+            max-width: 200px;
+            max-height: 200px;
+            border: 1px dashed #d1d5db;
+            background-color: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            cursor: pointer;
+            overflow: hidden;
+            position: relative;
+            resize: both; /* Permite redimensionar */
+        }
+        .logo-upload-box:hover {
+            border-color: #3b82f6;
+        }
+        
+        label {
+            font-size: 0.7rem !important;
+            margin-bottom: 0.1rem !important;
+        }
+
+        .analysis-select {
+            background-color: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.4);
+            font-size: 0.7rem;
+            border-radius: 4px;
+            padding: 1px 4px;
+            cursor: pointer;
+        }
+        .analysis-select option {
+            background-color: #1e3a8a;
+            color: white;
+        }
+
+        /* Seletor de Layout "Escondido" */
+        .layout-selector-fade {
+            opacity: 0.1; /* Quase invisível por padrão */
+            background-color: transparent;
+            border: 1px solid transparent;
+            color: white;
+            font-size: 0.65rem;
+            border-radius: 4px;
+            padding: 1px 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        /* Aparece ao passar o mouse na Header da seção */
+        .section-header:hover .layout-selector-fade,
+        .layout-selector-fade:focus {
+            opacity: 1;
+            background-color: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.4);
+        }
+        .layout-selector-fade option {
+            background-color: #1e3a8a;
+            color: white;
+        }
+
+        /* Classes Customizadas para Resize */
+        .resizable-y {
+            resize: vertical;
+            overflow: auto;
+            min-height: 2rem;
+            max-height: 90%;
+        }
+        
+        .resizable-x {
+            resize: horizontal;
+            overflow: auto;
+            min-width: 100px;
+            max-width: 80%;
+        }
+    </style>
+</head>
+<body class="pb-10 overflow-x-auto">
+
+    <!-- Container para notificações Toast -->
+    <div id="toast-container" class="no-print"></div>
+
+    <!-- Modal Lightbox -->
+    <div id="image-modal" class="no-print" onclick="closeImageModal()">
+        <span class="close-btn">&times;</span>
+        <img id="modal-img" src="" alt="Visualização Ampliada" onclick="event.stopPropagation()">
+        <p class="text-white mt-2 text-sm">Clique fora da imagem para fechar</p>
+    </div>
+
+    <!-- Botões Flutuantes de Ação -->
+    <div class="fixed bottom-5 right-5 flex flex-col gap-2 no-print z-50">
+        <!-- Input invisível para carregar arquivo -->
+        <input type="file" id="loadFile" accept=".json" class="hidden" onchange="loadReportData(this)">
+        
+        <button onclick="clearReport()" class="bg-red-600 hover:bg-red-700 text-white w-12 h-12 rounded-full shadow-lg transition-all flex items-center justify-center" title="Limpar Formulário">
+            <i class="fas fa-trash-alt"></i>
+        </button>
+
+        <button onclick="document.getElementById('loadFile').click()" class="bg-yellow-500 hover:bg-yellow-600 text-white w-12 h-12 rounded-full shadow-lg transition-all flex items-center justify-center" title="Carregar Relatório Salvo">
+            <i class="fas fa-folder-open"></i>
+        </button>
+        
+        <button onclick="saveReportData()" class="bg-green-600 hover:bg-green-700 text-white w-12 h-12 rounded-full shadow-lg transition-all flex items-center justify-center" title="Salvar Progresso (Arquivo)">
+            <i class="fas fa-save"></i>
+        </button>
+
+        <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white w-12 h-12 rounded-full shadow-lg transition-all flex items-center justify-center" title="Imprimir / Gerar PDF">
+            <i class="fas fa-print"></i>
+        </button>
+    </div>
+
+    <div class="a4-landscape" id="report">
+        
+        <!-- CABEÇALHO -->
+        <header class="flex justify-between items-center border-b-2 border-blue-900 pb-2 mb-2">
+            <div class="flex items-center gap-4">
+                <!-- Logo Interativo e Redimensionável -->
+                <div class="logo-upload-box" id="logoBox" onclick="triggerUpload('logoInput')">
+                    <input type="file" id="logoInput" class="hidden" accept="image/*" onchange="previewImage(this, 'logoImg', 'logoPlaceholder')">
+                    <div id="logoPlaceholder" class="text-gray-400 font-bold text-[10px] text-center leading-tight select-none">
+                        LOGO<br>EMPRESA
+                    </div>
+                    <img id="logoImg" class="uploaded-img hidden" src="" alt="Logo" onclick="openImageModal(this.src); event.stopPropagation()">
+                    <!-- Botão de Editar Logo (aparece via JS) -->
+                    <button id="btn-edit-logo" class="edit-img-btn hidden no-print" onclick="triggerUpload('logoInput'); event.stopPropagation()" title="Alterar Logo">
+                        <i class="fas fa-pen text-xs"></i>
+                    </button>
+                </div>
+                
+                <div>
+                    <h1 class="text-xl font-bold text-gray-800 uppercase">Relatório de Análise de Falha (RAF)</h1>
+                    <p class="text-xs text-gray-600">Engenharia de Manutenção & Confiabilidade</p>
+                </div>
+            </div>
+            <div class="flex gap-4">
+                <div class="text-right">
+                    <span class="block text-[10px] font-bold text-gray-500 uppercase">ID Relatório</span>
+                    <input type="text" id="reportIdInput" class="input-bare w-32 text-right font-mono font-bold text-sm static-input" value="RFA-2026-001">
+                </div>
+                <div class="text-right">
+                    <span class="block text-[10px] font-bold text-gray-500 uppercase">Criticidade</span>
+                    <select id="criticalitySelect" onchange="updateCriticalityColor(this)" class="input-bare w-28 text-right font-bold text-red-600 text-sm static-input">
+                        <option value="alta" class="text-red-600">Alta</option>
+                        <option value="media" class="text-yellow-600">Média</option>
+                        <option value="baixa" class="text-green-600">Baixa</option>
+                    </select>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-12 gap-4 flex-grow mb-2">
+            
+            <!-- COLUNA ESQUERDA -->
+            <div class="col-span-5 flex flex-col gap-2">
+                
+                <!-- 1. DADOS GERAIS -->
+                <div>
+                    <div class="section-header">
+                        <span><i class="fas fa-info-circle mr-2"></i> 1. Informações Gerais</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 mb-1">
+                        <div>
+                            <label class="block text-gray-600 font-bold">Data da Falha</label>
+                            <!-- DATA FIXA DD/MM/YYYY -->
+                            <input type="text" class="input-bare static-input" placeholder="dd/mm/yyyy" maxlength="10" oninput="dateMask(this)">
+                        </div>
+                        <div>
+                            <label class="block text-gray-600 font-bold">Tempo Parada (h)</label>
+                            <input type="number" class="input-bare static-input" placeholder="0.0">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 mb-1">
+                        <div>
+                            <label class="block text-gray-600 font-bold">Área / Setor</label>
+                            <input type="text" class="input-bare static-input" placeholder="Área...">
+                        </div>
+                        <div>
+                            <label class="block text-gray-600 font-bold">TAG / Ativo</label>
+                            <input type="text" class="input-bare static-input" placeholder="TAG...">
+                        </div>
+                    </div>
+                    <div>
+                         <label class="block text-gray-600 font-bold">Modo de Falha</label>
+                         <input type="text" class="input-bare static-input" placeholder="Ex: Desgaste, Fadiga, Sobrecarga...">
+                    </div>
+                </div>
+
+                <!-- 2. DESCRIÇÃO -->
+                <div>
+                    <div class="section-header group"> <!-- Classe group para hover -->
+                        <span><i class="fas fa-align-left mr-2"></i> 2. Descrição (Operação)</span>
+                        <select id="layoutSec2" onchange="updateLayout('sec2', this.value)" class="layout-selector-fade" title="Alterar Layout">
+                            <option value="default">Layout Padrão</option>
+                            <option value="side">Layout Lado a Lado</option>
+                            <option value="text">Layout Só Texto</option>
+                        </select>
+                    </div>
+                    
+                    <div id="sec2-container" class="flex flex-col gap-2 h-44 border border-transparent hover:border-gray-200 transition-colors rounded p-0.5">
+                        <!-- Texto -->
+                        <textarea id="sec2-text" class="input-bare w-full h-16 text-sm resize-none static-input resizable-y" placeholder="Descrição do operador: O que aconteceu? Sintomas?"></textarea>
+                        
+                        <!-- Imagens -->
+                        <div id="sec2-imgs" class="grid grid-cols-2 gap-2 flex-grow overflow-hidden min-h-0">
+                            <!-- Imagem 1 -->
+                            <div class="image-upload-box" id="box-imgDesc1" onclick="triggerUpload('imgDesc1')">
+                                <input type="file" id="imgDesc1" class="hidden" accept="image/*" onchange="previewImage(this, 'view-imgDesc1', 'ph-imgDesc1')">
+                                <div id="ph-imgDesc1" class="text-center text-gray-400 placeholder-content">
+                                    <i class="fas fa-camera text-lg mb-1"></i>
+                                    <p class="text-[9px]">Evidência Operação 1</p>
+                                </div>
+                                <img id="view-imgDesc1" class="uploaded-img hidden" src="" alt="Evidencia" onclick="openImageModal(this.src); event.stopPropagation()">
+                                <button id="btn-edit-imgDesc1" class="edit-img-btn hidden no-print" onclick="triggerUpload('imgDesc1'); event.stopPropagation()" title="Alterar Imagem"><i class="fas fa-pen text-xs"></i></button>
+                            </div>
+                            <!-- Imagem 2 -->
+                            <div class="image-upload-box" id="box-imgDesc2" onclick="triggerUpload('imgDesc2')">
+                                <input type="file" id="imgDesc2" class="hidden" accept="image/*" onchange="previewImage(this, 'view-imgDesc2', 'ph-imgDesc2')">
+                                <div id="ph-imgDesc2" class="text-center text-gray-400 placeholder-content">
+                                    <i class="fas fa-camera text-lg mb-1"></i>
+                                    <p class="text-[9px]">Evidência Operação 2</p>
+                                </div>
+                                <img id="view-imgDesc2" class="uploaded-img hidden" src="" alt="Evidencia" onclick="openImageModal(this.src); event.stopPropagation()">
+                                <button id="btn-edit-imgDesc2" class="edit-img-btn hidden no-print" onclick="triggerUpload('imgDesc2'); event.stopPropagation()" title="Alterar Imagem"><i class="fas fa-pen text-xs"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. EVIDÊNCIAS ENGENHARIA -->
+                <div class="flex-grow">
+                    <div class="section-header group"> <!-- Classe group para hover -->
+                        <span><i class="fas fa-search mr-2"></i> 3. Evidências Técnicas (Engenharia)</span>
+                        <select id="layoutSec3" onchange="updateLayout('sec3', this.value)" class="layout-selector-fade" title="Alterar Layout">
+                            <option value="default">Layout Padrão</option>
+                            <option value="side">Layout Lado a Lado</option>
+                            <option value="text">Layout Só Texto</option>
+                        </select>
+                    </div>
+                    
+                    <div id="sec3-container" class="flex flex-col gap-2 h-44 border border-transparent hover:border-gray-200 transition-colors rounded p-0.5">
+                        <textarea id="sec3-text" class="input-bare w-full h-16 text-sm resize-none static-input resizable-y" placeholder="Análise técnica de campo: O que foi encontrado desmontado? Condição dos componentes?"></textarea>
+                        
+                        <div id="sec3-imgs" class="grid grid-cols-2 gap-2 flex-grow overflow-hidden min-h-0">
+                            <!-- Imagem Eng 1 -->
+                            <div class="image-upload-box" id="box-imgEng1" onclick="triggerUpload('imgEng1')">
+                                <input type="file" id="imgEng1" class="hidden" accept="image/*" onchange="previewImage(this, 'view-imgEng1', 'ph-imgEng1')">
+                                <div id="ph-imgEng1" class="text-center text-gray-400 placeholder-content">
+                                    <i class="fas fa-microscope text-lg mb-1"></i>
+                                    <p class="text-[9px]">Evidência Técnica 1</p>
+                                </div>
+                                <img id="view-imgEng1" class="uploaded-img hidden" src="" alt="Evidencia" onclick="openImageModal(this.src); event.stopPropagation()">
+                                <button id="btn-edit-imgEng1" class="edit-img-btn hidden no-print" onclick="triggerUpload('imgEng1'); event.stopPropagation()" title="Alterar Imagem"><i class="fas fa-pen text-xs"></i></button>
+                            </div>
+                            <!-- Imagem Eng 2 -->
+                            <div class="image-upload-box" id="box-imgEng2" onclick="triggerUpload('imgEng2')">
+                                <input type="file" id="imgEng2" class="hidden" accept="image/*" onchange="previewImage(this, 'view-imgEng2', 'ph-imgEng2')">
+                                <div id="ph-imgEng2" class="text-center text-gray-400 placeholder-content">
+                                    <i class="fas fa-microscope text-lg mb-1"></i>
+                                    <p class="text-[9px]">Evidência Técnica 2</p>
+                                </div>
+                                <img id="view-imgEng2" class="uploaded-img hidden" src="" alt="Evidencia" onclick="openImageModal(this.src); event.stopPropagation()">
+                                <button id="btn-edit-imgEng2" class="edit-img-btn hidden no-print" onclick="triggerUpload('imgEng2'); event.stopPropagation()" title="Alterar Imagem"><i class="fas fa-pen text-xs"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- COLUNA DIREITA -->
+            <div class="col-span-7 flex flex-col gap-2">
+
+                <!-- 4. ANÁLISE DE CAUSA -->
+                <div class="h-60 flex flex-col">
+                    <div class="section-header">
+                        <span><i class="fas fa-project-diagram mr-2"></i> 4. Análise de Causa Raiz</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[9px] font-normal opacity-80 uppercase">Método:</span>
+                            <select id="analysisSelector" onchange="toggleAnalysis(this.value)" class="analysis-select">
+                                <option value="ishikawa">Diagrama de Ishikawa / Árvore</option>
+                                <option value="5whys">5 Porquês</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Ishikawa -->
+                    <div id="view-ishikawa" class="analysis-option flex-grow border border-gray-300 rounded bg-white p-1">
+                        <div class="image-upload-box bg-white h-full border-none" id="box-diagramImg" onclick="triggerUpload('diagramImg')">
+                            <input type="file" id="diagramImg" class="hidden" accept="image/*" onchange="previewImage(this, 'view-diagramImg', 'ph-diagramImg')">
+                            <div id="ph-diagramImg" class="text-center text-gray-400 placeholder-content">
+                                <i class="fas fa-chart-network text-4xl mb-2 text-gray-300"></i>
+                                <p class="text-xs">Arraste ou Clique para imagem do Diagrama</p>
+                            </div>
+                            <img id="view-diagramImg" class="uploaded-img hidden" src="" alt="Diagrama" onclick="openImageModal(this.src); event.stopPropagation()">
+                            <button id="btn-edit-diagramImg" class="edit-img-btn hidden no-print" onclick="triggerUpload('diagramImg'); event.stopPropagation()" title="Alterar Diagrama"><i class="fas fa-pen text-xs"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- 5 Porquês -->
+                    <div id="view-5whys" class="analysis-option flex-grow border border-gray-300 rounded bg-white p-4 hidden flex flex-col justify-center space-y-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-blue-800 w-20 whitespace-nowrap">1. Por que?</span>
+                            <input type="text" class="input-bare py-1 text-sm flex-1 static-input" placeholder="Responda aqui...">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-blue-800 w-20 whitespace-nowrap">2. Por que?</span>
+                            <input type="text" class="input-bare py-1 text-sm flex-1 static-input" placeholder="Responda aqui...">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-blue-800 w-20 whitespace-nowrap">3. Por que?</span>
+                            <input type="text" class="input-bare py-1 text-sm flex-1 static-input" placeholder="Responda aqui...">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-blue-800 w-20 whitespace-nowrap">4. Por que?</span>
+                            <input type="text" class="input-bare py-1 text-sm flex-1 static-input" placeholder="Responda aqui...">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-red-600 w-20 whitespace-nowrap">5. Causa Raiz</span>
+                            <input type="text" class="input-bare py-1 text-sm font-bold bg-yellow-50 flex-1 static-input" placeholder="Causa Raiz Identificada">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. SOLUÇÃO TÉCNICA -->
+                <div>
+                    <div class="section-header">
+                        <span><i class="fas fa-wrench mr-2"></i> 5. Solução Técnica Adotada</span>
+                    </div>
+                    <!-- ID Adicionado para rastreamento de tamanho -->
+                    <textarea id="solutionText" class="input-bare w-full h-16 text-sm resizable-y static-input" placeholder="Descrição técnica da resolução..."></textarea>
+                </div>
+
+                <!-- 6. PLANO DE AÇÃO -->
+                <div class="flex-grow flex flex-col overflow-hidden">
+                    <div class="section-header flex justify-between">
+                        <span><i class="fas fa-clipboard-list mr-2"></i> 6. Plano de Ação (5W2H)</span>
+                        <button onclick="addActionRow()" class="bg-blue-500 hover:bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded no-print">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    <div class="border border-gray-300 flex-grow bg-white overflow-y-auto">
+                        <table class="w-full text-xs text-left text-gray-600" id="actionTable">
+                            <thead class="text-[10px] text-gray-700 uppercase bg-gray-100 border-b sticky top-0">
+                                <tr>
+                                    <th class="px-2 py-1 border-r w-1/2">O Que (Ação)</th>
+                                    <th class="px-2 py-1 border-r">Quem</th>
+                                    <th class="px-2 py-1 border-r w-24">Quando</th>
+                                    <th class="px-2 py-1 text-center w-24">Status</th>
+                                    <th class="w-6 no-print"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- As linhas serão geradas ou restauradas aqui -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- RODAPÉ (PARTICIPANTES + APROVAÇÕES) -->
+        <footer class="mt-auto pt-2 border-t-2 border-gray-300">
+            
+            <!-- NOVA SEÇÃO: PARTICIPANTES DA ANÁLISE -->
+            <div class="mb-3 px-1">
+                <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Equipe Multidisciplinar / Participantes da Análise</label>
+                <!-- ID Adicionado para rastreamento de tamanho -->
+                <textarea id="participantsText" class="input-bare w-full h-10 text-xs resize-none static-input bg-gray-50 resizable-y" placeholder="Liste aqui os nomes dos participantes envolvidos na análise..."></textarea>
+            </div>
+
+            <!-- ASSINATURAS -->
+            <div class="grid grid-cols-3 gap-8 text-center mt-2">
+                <div>
+                    <input type="text" class="text-center text-[10px] w-full bg-transparent mb-0.5 font-bold static-input" placeholder="Nome do Elaborador">
+                    <div class="border-t border-gray-400 w-2/3 mx-auto"></div>
+                    <p class="text-[9px] text-gray-500">Técnico / Elaborador</p>
+                </div>
+                <div>
+                    <input type="text" class="text-center text-[10px] w-full bg-transparent mb-0.5 font-bold static-input" placeholder="Nome do Engenheiro">
+                    <div class="border-t border-gray-400 w-2/3 mx-auto"></div>
+                    <p class="text-[9px] text-gray-500">Engenharia de Manutenção</p>
+                </div>
+                <div>
+                    <input type="text" class="text-center text-[10px] w-full bg-transparent mb-0.5 font-bold static-input" placeholder="Nome do Gestor">
+                    <div class="border-t border-gray-400 w-2/3 mx-auto"></div>
+                    <p class="text-[9px] text-gray-500">Gerência de Área</p>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <script>
+        // --- FUNÇÃO TOAST ---
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `<i class="fas fa-exclamation-circle"></i> <span>${message}</span>`;
+            
+            container.appendChild(toast);
+
+            // Remove após 3 segundos
+            setTimeout(() => {
+                toast.style.animation = 'fadeOut 0.3s ease-out forwards';
+                setTimeout(() => {
+                    if (toast.parentNode) toast.parentNode.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+
+        // --- INICIALIZAÇÃO ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Inicializar Drag & Drop
+            const dropZones = [
+                { box: 'logoBox', input: 'logoInput' },
+                { box: 'box-imgDesc1', input: 'imgDesc1' },
+                { box: 'box-imgDesc2', input: 'imgDesc2' },
+                { box: 'box-imgEng1', input: 'imgEng1' },
+                { box: 'box-imgEng2', input: 'imgEng2' },
+                { box: 'box-diagramImg', input: 'diagramImg' }
+            ];
+
+            dropZones.forEach(zone => setupDragAndDrop(zone.box, zone.input));
+
+            // Iniciar com 3 linhas na tabela
+            if(document.querySelector('#actionTable tbody').children.length === 0) {
+                addActionRow();
+                addActionRow();
+                addActionRow();
+            }
+
+            // Atualiza cor inicial da criticidade
+            const critSelect = document.getElementById('criticalitySelect');
+            if(critSelect) updateCriticalityColor(critSelect);
+
+            // Listener para mudar título da página conforme o ID
+            const idInput = document.getElementById('reportIdInput');
+            if(idInput) {
+                document.title = idInput.value || "Relatório de Análise de Falha (RAF)";
+                idInput.addEventListener('input', (e) => {
+                    document.title = e.target.value || "Relatório de Análise de Falha (RAF)";
+                });
+            }
+        });
+
+
+        // --- MODAL IMAGE ---
+        function openImageModal(src) {
+            const modal = document.getElementById('image-modal');
+            const modalImg = document.getElementById('modal-img');
+            modalImg.src = src;
+            modal.style.display = 'flex';
+        }
+
+        function closeImageModal() {
+            document.getElementById('image-modal').style.display = 'none';
+        }
+
+
+        // --- CRITICIDADE COR DINAMICA ---
+        function updateCriticalityColor(select) {
+            // Remove classes de cor anteriores
+            select.classList.remove('text-red-600', 'text-yellow-600', 'text-green-600');
+            
+            // Adiciona a nova com base no valor
+            if (select.value === 'alta') {
+                select.classList.add('text-red-600');
+            } else if (select.value === 'media') {
+                select.classList.add('text-yellow-600');
+            } else if (select.value === 'baixa') {
+                select.classList.add('text-green-600');
+            }
+        }
+
+
+        // --- LIMPAR RELATÓRIO ---
+        function clearReport() {
+            if (!confirm("Tem a certeza que deseja limpar todo o formulário? Todas as informações não salvas serão perdidas.")) {
+                return;
+            }
+
+            // 1. Reset Inputs Estáticos
+            const inputs = document.querySelectorAll('.static-input');
+            inputs.forEach(input => {
+                if (input.id === 'reportIdInput') {
+                    input.value = 'RFA-2026-001';
+                    document.title = 'Relatório de Análise de Falha (RAF)';
+                } else {
+                    input.value = '';
+                }
+            });
+
+            // 2. Reset Selects Específicos
+            const critSelect = document.getElementById('criticalitySelect');
+            critSelect.value = 'alta';
+            updateCriticalityColor(critSelect);
+
+            const analysisSelect = document.getElementById('analysisSelector');
+            analysisSelect.value = 'ishikawa';
+            toggleAnalysis('ishikawa');
+
+            const layout2 = document.getElementById('layoutSec2');
+            layout2.value = 'default';
+            updateLayout('sec2', 'default');
+            
+            const layout3 = document.getElementById('layoutSec3');
+            layout3.value = 'default';
+            updateLayout('sec3', 'default');
+
+            // 3. Reset Imagens
+            const imgIds = ['logoImg', 'view-imgDesc1', 'view-imgDesc2', 'view-imgEng1', 'view-imgEng2', 'view-diagramImg'];
+            const placeholders = {
+                'logoImg': 'logoPlaceholder',
+                'view-imgDesc1': 'ph-imgDesc1',
+                'view-imgDesc2': 'ph-imgDesc2',
+                'view-imgEng1': 'ph-imgEng1',
+                'view-imgEng2': 'ph-imgEng2',
+                'view-diagramImg': 'ph-diagramImg'
+            };
+
+            imgIds.forEach(id => {
+                const img = document.getElementById(id);
+                const placeholderId = placeholders[id];
+                const placeholder = document.getElementById(placeholderId);
+                const parent = img.parentElement;
+                const btnEditId = 'btn-edit-' + id;
+                const btnEdit = document.getElementById(btnEditId);
+
+                img.src = '';
+                img.classList.add('hidden');
+                if (placeholder) placeholder.classList.remove('hidden');
+                if (btnEdit) btnEdit.classList.add('hidden');
+
+                // Resetar bordas (exceto logo box que não muda classe)
+                if (!parent.classList.contains('logo-upload-box')) {
+                     parent.classList.remove('border-solid');
+                     parent.classList.add('border-dashed');
+                }
+            });
+
+            // 4. Reset Tabela
+            const tbody = document.querySelector('#actionTable tbody');
+            tbody.innerHTML = '';
+            addActionRow();
+            addActionRow();
+            addActionRow();
+
+            // 5. Reset Dimensões
+            const resizableIds = ['sec2-text', 'sec3-text', 'sec2-imgs', 'sec3-imgs', 'solutionText', 'participantsText', 'logoBox'];
+            resizableIds.forEach(id => {
+                const el = document.getElementById(id);
+                if(el) {
+                    el.style.width = '';
+                    el.style.height = '';
+                }
+            });
+
+            showToast("Formulário limpo com sucesso.");
+        }
+
+
+        // --- LAYOUT UPDATE LOGIC ---
+        function updateLayout(sectionPrefix, type) {
+            const container = document.getElementById(`${sectionPrefix}-container`);
+            const text = document.getElementById(`${sectionPrefix}-text`);
+            const imgsContainer = document.getElementById(`${sectionPrefix}-imgs`);
+            const secondImg = imgsContainer.children[1]; 
+
+            // Limpa estilos inline que possam ter sido adicionados pelo resize manual
+            text.style.height = ''; 
+            text.style.width = '';
+            imgsContainer.style.height = '';
+            imgsContainer.style.width = '';
+
+            // Reset classes
+            container.className = "h-44 transition-all duration-200 border border-transparent hover:border-gray-200 transition-colors rounded p-0.5";
+            text.className = "input-bare text-sm static-input"; // Remove classes especificas de layout
+            imgsContainer.className = "gap-2 overflow-hidden min-h-0"; // Reset base
+
+            secondImg.classList.remove('hidden');
+            secondImg.classList.remove('layout-hidden');
+            imgsContainer.classList.remove('hidden');
+            imgsContainer.classList.remove('layout-hidden');
+
+            if (type === 'default') {
+                container.classList.add('flex', 'flex-col', 'gap-2');
+                text.classList.add('w-full', 'h-16', 'resizable-y'); // Altura inicial definida
+                imgsContainer.classList.add('flex-grow', 'grid', 'grid-cols-2');
+            } 
+            else if (type === 'side') {
+                container.classList.add('flex', 'flex-row', 'gap-2');
+                text.classList.add('flex-1', 'h-full', 'resize-none');
+                imgsContainer.classList.add('w-1/3', 'h-full', 'resizable-x', 'grid', 'grid-cols-1');
+                
+                // Esconde a segunda imagem
+                secondImg.classList.add('hidden', 'layout-hidden');
+            } 
+            else if (type === 'text') {
+                container.classList.add('block');
+                text.classList.add('w-full', 'h-full', 'resize-none');
+                imgsContainer.classList.add('hidden', 'layout-hidden');
+            }
+        }
+
+
+        // --- FUNÇÕES DE DATA (MÁSCARA) ---
+        function dateMask(input) {
+            let v = input.value.replace(/\D/g, ''); // Remove tudo que não é dígito
+            
+            if (v.length > 8) v = v.slice(0, 8); // Limita a 8 dígitos (ddmmyyyy)
+
+            if (v.length > 4) {
+                input.value = `${v.slice(0, 2)}/${v.slice(2, 4)}/${v.slice(4)}`;
+            } else if (v.length > 2) {
+                input.value = `${v.slice(0, 2)}/${v.slice(2)}`;
+            } else {
+                input.value = v;
+            }
+        }
+
+        // --- FUNÇÕES DE IMAGEM ---
+
+        function triggerUpload(id) {
+            document.getElementById(id).click();
+        }
+
+        function previewImage(input, imgId, placeholderId) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    displayImage(e.target.result, imgId, placeholderId);
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function displayImage(base64Data, imgId, placeholderId) {
+            const img = document.getElementById(imgId);
+            const placeholder = document.getElementById(placeholderId);
+            const parent = placeholder.parentElement;
+            const btnEditId = 'btn-edit-' + imgId;
+            const btnEdit = document.getElementById(btnEditId);
+
+            img.src = base64Data;
+            img.classList.remove('hidden');
+            if(placeholder) placeholder.classList.add('hidden');
+            if(btnEdit) btnEdit.classList.remove('hidden'); // Show edit button
+            
+            // Remove borda dashed e poe solid (exceto no logo que tem estilo fixo)
+            if(!parent.classList.contains('logo-upload-box')) {
+                parent.classList.add('border-solid');
+                parent.classList.remove('border-dashed');
+            }
+        }
+
+        // --- DRAG AND DROP ---
+        
+        function setupDragAndDrop(boxId, inputId) {
+            const box = document.getElementById(boxId);
+            const input = document.getElementById(inputId);
+            
+            // Previne comportamento padrão
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                box.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            // Destaque visual
+            ['dragenter', 'dragover'].forEach(eventName => {
+                box.addEventListener(eventName, () => box.classList.add('drag-over'), false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                box.addEventListener(eventName, () => box.classList.remove('drag-over'), false);
+            });
+
+            // Handle Drop
+            box.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+
+                if (files.length > 0) {
+                    input.files = files; // Atualiza o input file
+                    // Dispara o evento change manualmente para rodar o preview
+                    const event = new Event('change');
+                    input.dispatchEvent(event);
+                }
+            });
+        }
+
+
+        // --- TABELA DE AÇÃO ---
+
+        function addActionRow(data = null) {
+            const table = document.getElementById('actionTable').getElementsByTagName('tbody')[0];
+            const newRow = table.insertRow();
+            newRow.className = "border-b hover:bg-gray-50 align-top"; // align-top para textarea multiline
+            
+            const valAction = data ? data.action : '';
+            const valResp = data ? data.resp : '';
+            const valDate = data ? data.date : '';
+            const valStatus = data ? data.status : 'aberto';
+
+            // Campo Ação agora é Textarea para quebra de texto
+            newRow.innerHTML = `
+                <td class="border-r p-1">
+                    <textarea class="input-bare border-none focus:ring-0 bg-transparent w-full text-xs resize-none overflow-hidden" 
+                              rows="1" 
+                              placeholder="Ação..."
+                              oninput="autoResizeRow(this)">${valAction}</textarea>
+                </td>
+                <td class="border-r align-middle"><input type="text" value="${valResp}" class="input-bare border-none focus:ring-0 bg-transparent w-full text-xs" placeholder="Resp."></td>
+                <td class="border-r align-middle"><input type="text" value="${valDate}" class="input-bare border-none focus:ring-0 bg-transparent w-full text-xs" placeholder="dd/mm/yyyy" maxlength="10" oninput="dateMask(this)"></td>
+                <td class="text-center align-middle">
+                    <select class="bg-transparent text-[10px] font-bold text-center w-full focus:outline-none" onchange="updateStatusColor(this)">
+                        <option value="aberto" ${valStatus === 'aberto' ? 'selected' : ''}>Aberto</option>
+                        <option value="andamento" ${valStatus === 'andamento' ? 'selected' : ''}>Andamento</option>
+                        <option value="concluido" ${valStatus === 'concluido' ? 'selected' : ''}>Concluído</option>
+                    </select>
+                </td>
+                <td class="text-center align-middle no-print"><button onclick="removeRow(this)" class="text-red-400"><i class="fas fa-times"></i></button></td>
+            `;
+            // Atualizar cor inicial
+            updateStatusColor(newRow.querySelector('select'));
+            // Ajustar altura inicial se tiver texto
+            if(valAction) {
+                const ta = newRow.querySelector('textarea');
+                autoResizeRow(ta);
+            }
+        }
+
+        function autoResizeRow(textarea) {
+            textarea.style.height = 'auto'; // Reseta
+            textarea.style.height = textarea.scrollHeight + 'px'; // Ajusta
+        }
+
+        function removeRow(btn) {
+            const row = btn.parentNode.parentNode;
+            row.parentNode.removeChild(row);
+        }
+
+        function updateStatusColor(select) {
+            select.className = "bg-transparent text-[10px] font-bold text-center w-full focus:outline-none " + 
+                (select.value === 'aberto' ? 'text-red-600' : 
+                 select.value === 'andamento' ? 'text-yellow-600' : 'text-green-600');
+        }
+
+        function toggleAnalysis(value) {
+            const ishikawa = document.getElementById('view-ishikawa');
+            const whys = document.getElementById('view-5whys');
+            
+            if (value === 'ishikawa') {
+                ishikawa.classList.remove('hidden');
+                whys.classList.add('hidden');
+            } else {
+                ishikawa.classList.add('hidden');
+                whys.classList.remove('hidden');
+            }
+        }
+
+
+        // --- SALVAR E CARREGAR (PERSISTÊNCIA) ---
+
+        function saveReportData() {
+            // Obter ID do Relatório para nomear o arquivo
+            const reportIdInput = document.getElementById('reportIdInput');
+            const reportName = reportIdInput && reportIdInput.value ? reportIdInput.value.trim() : "relatorio_rcfa";
+
+            const data = {
+                // 1. Inputs Estáticos
+                staticInputs: [],
+                // 2. Imagens
+                images: {},
+                // 3. Tabela Dinâmica
+                tableRows: [],
+                // 4. Configurações
+                analysisType: document.getElementById('analysisSelector').value,
+                layoutSec2: document.getElementById('layoutSec2').value,
+                layoutSec3: document.getElementById('layoutSec3').value,
+                // 5. Criticidade
+                criticality: document.getElementById('criticalitySelect').value,
+                // 6. Dimensões Personalizadas (Resize)
+                dimensions: {}
+            };
+
+            // Coletar Inputs Estáticos
+            const inputs = document.querySelectorAll('.static-input');
+            inputs.forEach((input, index) => {
+                data.staticInputs.push(input.value);
+            });
+
+            // Coletar Imagens
+            const imgIds = ['logoImg', 'view-imgDesc1', 'view-imgDesc2', 'view-imgEng1', 'view-imgEng2', 'view-diagramImg'];
+            imgIds.forEach(id => {
+                const img = document.getElementById(id);
+                if (!img.classList.contains('hidden') && img.src) {
+                    data.images[id] = img.src;
+                }
+            });
+
+            // Coletar Dados da Tabela
+            const rows = document.querySelectorAll('#actionTable tbody tr');
+            rows.forEach(row => {
+                // Agora pegamos input, select e textarea
+                const fields = row.querySelectorAll('input, select, textarea');
+                // Ordem na DOM: Textarea(Ação), Input(Resp), Input(Data), Select(Status)
+                // fields[0]=Ação, fields[1]=Resp, fields[2]=Data, fields[3]=Status
+                if(fields.length >= 4) {
+                    data.tableRows.push({
+                        action: fields[0].value,
+                        resp: fields[1].value,
+                        date: fields[2].value,
+                        status: fields[3].value
+                    });
+                }
+            });
+
+            // Coletar Dimensões dos elementos redimensionáveis
+            const resizableIds = ['sec2-text', 'sec3-text', 'sec2-imgs', 'sec3-imgs', 'solutionText', 'participantsText', 'logoBox'];
+            resizableIds.forEach(id => {
+                const el = document.getElementById(id);
+                if(el) {
+                    data.dimensions[id] = {
+                        width: el.style.width,
+                        height: el.style.height
+                    };
+                }
+            });
+
+            // Gerar Arquivo e Download
+            const jsonStr = JSON.stringify(data);
+            const blob = new Blob([jsonStr], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${reportName}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function loadReportData(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    applyLoadedData(data);
+                } catch (err) {
+                    showToast("Erro ao ler arquivo. Certifique-se que é um JSON válido.");
+                    console.error(err);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function applyLoadedData(data) {
+            // 1. Restaurar Inputs Estáticos
+            const inputs = document.querySelectorAll('.static-input');
+            if (data.staticInputs && data.staticInputs.length === inputs.length) {
+                inputs.forEach((input, index) => {
+                    input.value = data.staticInputs[index];
+                });
+            }
+            
+            // Atualizar o título da página baseado no ID carregado
+            const reportIdInput = document.getElementById('reportIdInput');
+            if(reportIdInput) {
+                document.title = reportIdInput.value || "Relatório de Análise de Falha (RAF)";
+            }
+
+            // Restaurar Criticidade (Cor e Valor)
+            if (data.criticality) {
+                const critSelect = document.getElementById('criticalitySelect');
+                if(critSelect) {
+                    critSelect.value = data.criticality;
+                    updateCriticalityColor(critSelect);
+                }
+            }
+
+            // 2. Restaurar Imagens
+            const imgMap = {
+                'logoImg': 'logoPlaceholder',
+                'view-imgDesc1': 'ph-imgDesc1',
+                'view-imgDesc2': 'ph-imgDesc2',
+                'view-imgEng1': 'ph-imgEng1',
+                'view-imgEng2': 'ph-imgEng2',
+                'view-diagramImg': 'ph-diagramImg'
+            };
+
+            for (const [imgId, src] of Object.entries(data.images || {})) {
+                if (imgMap[imgId]) {
+                    displayImage(src, imgId, imgMap[imgId]);
+                }
+            }
+
+            // 3. Restaurar Tabela
+            const tbody = document.querySelector('#actionTable tbody');
+            tbody.innerHTML = '';
+            if (data.tableRows && data.tableRows.length > 0) {
+                data.tableRows.forEach(rowData => addActionRow(rowData));
+            } else {
+                addActionRow(); addActionRow(); addActionRow();
+            }
+
+            // 4. Restaurar Tipo de Análise e Layouts
+            if (data.analysisType) {
+                const selector = document.getElementById('analysisSelector');
+                selector.value = data.analysisType;
+                toggleAnalysis(data.analysisType);
+            }
+            if (data.layoutSec2) {
+                const s2 = document.getElementById('layoutSec2');
+                s2.value = data.layoutSec2;
+                updateLayout('sec2', data.layoutSec2);
+            }
+            if (data.layoutSec3) {
+                const s3 = document.getElementById('layoutSec3');
+                s3.value = data.layoutSec3;
+                updateLayout('sec3', data.layoutSec3);
+            }
+
+            // 5. Restaurar Dimensões (após o updateLayout)
+            if (data.dimensions) {
+                for (const [id, dims] of Object.entries(data.dimensions)) {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        if (dims.width) el.style.width = dims.width;
+                        if (dims.height) el.style.height = dims.height;
+                    }
+                }
+            }
+        }
+
+    </script>
+</body>
+</html>
