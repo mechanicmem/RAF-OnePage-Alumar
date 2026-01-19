@@ -105,13 +105,17 @@
             body {
                 background: white;
                 margin: 0;
+                /* Ajuste de escala para garantir 1 página */
+                transform-origin: top left;
+                width: 100%;
             }
             .a4-landscape {
                 margin: 0;
                 box-shadow: none;
                 width: 100%;
-                height: 100vh;
-                padding: 8mm;
+                height: 100vh; /* Ocupa altura total da folha */
+                padding: 5mm; /* Margem interna reduzida na impressão */
+                border: none;
             }
             .no-print {
                 display: none !important;
@@ -590,33 +594,14 @@
             </div>
         </div>
 
-        <!-- RODAPÉ (PARTICIPANTES + APROVAÇÕES) -->
+        <!-- RODAPÉ (PARTICIPANTES APENAS) -->
         <footer class="mt-auto pt-2 border-t-2 border-gray-300">
             
-            <!-- NOVA SEÇÃO: PARTICIPANTES DA ANÁLISE -->
-            <div class="mb-3 px-1">
+            <!-- SEÇÃO: PARTICIPANTES DA ANÁLISE -->
+            <div class="mb-1 px-1">
                 <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Equipe Multidisciplinar / Participantes da Análise</label>
                 <!-- ID Adicionado para rastreamento de tamanho -->
                 <textarea id="participantsText" class="input-bare w-full h-10 text-xs resize-none static-input bg-gray-50 resizable-y" placeholder="Liste aqui os nomes dos participantes envolvidos na análise..."></textarea>
-            </div>
-
-            <!-- ASSINATURAS -->
-            <div class="grid grid-cols-3 gap-8 text-center mt-2">
-                <div>
-                    <input type="text" class="text-center text-[10px] w-full bg-transparent mb-0.5 font-bold static-input" placeholder="Nome do Elaborador">
-                    <div class="border-t border-gray-400 w-2/3 mx-auto"></div>
-                    <p class="text-[9px] text-gray-500">Técnico / Elaborador</p>
-                </div>
-                <div>
-                    <input type="text" class="text-center text-[10px] w-full bg-transparent mb-0.5 font-bold static-input" placeholder="Nome do Engenheiro">
-                    <div class="border-t border-gray-400 w-2/3 mx-auto"></div>
-                    <p class="text-[9px] text-gray-500">Engenharia de Manutenção</p>
-                </div>
-                <div>
-                    <input type="text" class="text-center text-[10px] w-full bg-transparent mb-0.5 font-bold static-input" placeholder="Nome do Gestor">
-                    <div class="border-t border-gray-400 w-2/3 mx-auto"></div>
-                    <p class="text-[9px] text-gray-500">Gerência de Área</p>
-                </div>
             </div>
         </footer>
 
