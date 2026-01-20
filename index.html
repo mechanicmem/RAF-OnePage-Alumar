@@ -105,7 +105,6 @@
             body {
                 background: white;
                 margin: 0;
-                /* Ajuste de escala para garantir 1 página */
                 transform-origin: top left;
                 width: 100%;
             }
@@ -113,8 +112,8 @@
                 margin: 0;
                 box-shadow: none;
                 width: 100%;
-                height: 100vh; /* Ocupa altura total da folha */
-                padding: 5mm; /* Margem interna reduzida na impressão */
+                height: 100vh;
+                padding: 5mm;
                 border: none;
             }
             .no-print {
@@ -123,7 +122,7 @@
             input, textarea, select {
                 border: none !important;
                 background: transparent !important;
-                resize: none !important; /* Trava resize na impressão */
+                resize: none !important;
                 padding: 0;
                 appearance: none;
             }
@@ -133,11 +132,8 @@
             .layout-hidden {
                 display: none !important;
             }
-            /* Remove barras de rolagem e handles na impressão */
             ::-webkit-scrollbar { display: none; }
             * { overflow: visible !important; }
-            
-            /* Esconder seletores de layout na impressão */
             .layout-selector-fade {
                 display: none !important;
             }
@@ -201,7 +197,7 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
-            cursor: zoom-in; /* Cursor de lupa */
+            cursor: zoom-in;
         }
         
         /* Botões de ação flutuantes na imagem */
@@ -212,11 +208,9 @@
             display: flex;
             gap: 4px;
             z-index: 10;
-            opacity: 0; /* Oculto por padrão */
+            opacity: 0;
             transition: opacity 0.2s ease-in-out;
         }
-        
-        /* Mostrar ações ao passar o mouse no container da imagem */
         .image-upload-box:hover .img-actions,
         .logo-upload-box:hover .img-actions {
             opacity: 1;
@@ -247,10 +241,10 @@
             border-color: #ef4444;
         }
         
-        /* Logo Upload Específico - Redimensionável */
+        /* Logo Upload Específico */
         .logo-upload-box {
-            width: 3.5rem; /* Inicial */
-            height: 3.5rem; /* Inicial */
+            width: 3.5rem;
+            height: 3.5rem;
             min-width: 2rem;
             min-height: 2rem;
             max-width: 200px;
@@ -264,7 +258,7 @@
             cursor: pointer;
             overflow: hidden;
             position: relative;
-            resize: both; /* Permite redimensionar */
+            resize: both;
         }
         .logo-upload-box:hover {
             border-color: #3b82f6;
@@ -289,9 +283,9 @@
             color: white;
         }
 
-        /* Seletor de Layout "Escondido" */
+        /* Seletor de Layout */
         .layout-selector-fade {
-            opacity: 0.1; /* Quase invisível por padrão */
+            opacity: 0.1;
             background-color: transparent;
             border: 1px solid transparent;
             color: white;
@@ -301,7 +295,6 @@
             cursor: pointer;
             transition: all 0.3s ease;
         }
-        /* Aparece ao passar o mouse na Header da seção */
         .section-header:hover .layout-selector-fade,
         .layout-selector-fade:focus {
             opacity: 1;
@@ -313,14 +306,13 @@
             color: white;
         }
 
-        /* Classes Customizadas para Resize */
+        /* Classes Customizadas */
         .resizable-y {
             resize: vertical;
             overflow: auto;
             min-height: 2rem;
             max-height: 90%;
         }
-        
         .resizable-x {
             resize: horizontal;
             overflow: auto;
@@ -341,10 +333,15 @@
         <p class="text-white mt-2 text-sm">Clique fora da imagem para fechar</p>
     </div>
 
+    <!-- Créditos Discretos -->
+    <div class="fixed bottom-1 left-2 text-[10px] text-gray-400 opacity-50 hover:opacity-100 transition-opacity no-print select-none z-50 font-light">
+        Made by: Henrique Melo
+    </div>
+
     <!-- Botões Flutuantes de Ação -->
     <div class="fixed bottom-5 right-5 flex flex-col gap-2 no-print z-50">
         <!-- Input invisível para carregar arquivo -->
-        <input type="file" id="loadFile" accept=".json" class="hidden" onchange="loadReportData(this)">
+        <input type="file" id="loadFile" accept=".json, .html" class="hidden" onchange="loadReportData(this)">
         
         <button onclick="clearReport()" class="bg-red-600 hover:bg-red-700 text-white w-12 h-12 rounded-full shadow-lg transition-all flex items-center justify-center" title="Limpar Formulário">
             <i class="fas fa-trash-alt"></i>
@@ -354,7 +351,7 @@
             <i class="fas fa-folder-open"></i>
         </button>
         
-        <button onclick="saveReportData()" class="bg-green-600 hover:bg-green-700 text-white w-12 h-12 rounded-full shadow-lg transition-all flex items-center justify-center" title="Salvar Progresso (Arquivo)">
+        <button onclick="saveReportData()" class="bg-green-600 hover:bg-green-700 text-white w-12 h-12 rounded-full shadow-lg transition-all flex items-center justify-center" title="Salvar HTML Autônomo">
             <i class="fas fa-save"></i>
         </button>
 
@@ -368,7 +365,7 @@
         <!-- CABEÇALHO -->
         <header class="flex justify-between items-center border-b-2 border-blue-900 pb-2 mb-2">
             <div class="flex items-center gap-4">
-                <!-- Logo Interativo e Redimensionável -->
+                <!-- Logo -->
                 <div class="logo-upload-box" id="logoBox" onclick="triggerUpload('logoInput')">
                     <input type="file" id="logoInput" class="hidden" accept="image/*" onchange="previewImage(this, 'logoImg', 'logoPlaceholder')">
                     <div id="logoPlaceholder" class="text-gray-400 font-bold text-[10px] text-center leading-tight select-none">
@@ -376,7 +373,6 @@
                     </div>
                     <img id="logoImg" class="uploaded-img hidden" src="" alt="Logo" onclick="openImageModal(this.src); event.stopPropagation()">
                     
-                    <!-- Botões de Ação Logo -->
                     <div id="actions-logoImg" class="img-actions hidden no-print">
                         <button class="img-action-btn" onclick="triggerUpload('logoInput'); event.stopPropagation()" title="Alterar Logo">
                             <i class="fas fa-pen text-[10px]"></i>
@@ -421,8 +417,7 @@
                     <div class="grid grid-cols-2 gap-2 mb-1">
                         <div>
                             <label class="block text-gray-600 font-bold">Data da Falha</label>
-                            <!-- DATA FIXA DD/MM/YYYY -->
-                            <input type="text" class="input-bare static-input" placeholder="dd/mm/yyyy" maxlength="10" oninput="dateMask(this)">
+                            <input type="text" id="inputDate" class="input-bare static-input" placeholder="dd/mm/yyyy" maxlength="10" oninput="dateMask(this)">
                         </div>
                         <div>
                             <label class="block text-gray-600 font-bold">Tempo Parada (h)</label>
@@ -436,18 +431,18 @@
                         </div>
                         <div>
                             <label class="block text-gray-600 font-bold">TAG / Ativo</label>
-                            <input type="text" class="input-bare static-input" placeholder="TAG...">
+                            <input type="text" id="inputTag" class="input-bare static-input" placeholder="TAG...">
                         </div>
                     </div>
                     <div>
                          <label class="block text-gray-600 font-bold">Modo de Falha</label>
-                         <input type="text" class="input-bare static-input" placeholder="Ex: Desgaste, Fadiga, Sobrecarga...">
+                         <input type="text" id="inputFailureMode" class="input-bare static-input" placeholder="Ex: Desgaste, Fadiga, Sobrecarga...">
                     </div>
                 </div>
 
                 <!-- 2. DESCRIÇÃO -->
                 <div>
-                    <div class="section-header group"> <!-- Classe group para hover -->
+                    <div class="section-header group">
                         <span><i class="fas fa-align-left mr-2"></i> 2. Descrição (Operação)</span>
                         <select id="layoutSec2" onchange="updateLayout('sec2', this.value)" class="layout-selector-fade" title="Alterar Layout">
                             <option value="default">Layout Padrão</option>
@@ -457,10 +452,8 @@
                     </div>
                     
                     <div id="sec2-container" class="flex flex-col gap-2 h-44 border border-transparent hover:border-gray-200 transition-colors rounded p-0.5">
-                        <!-- Texto -->
                         <textarea id="sec2-text" class="input-bare w-full h-16 text-sm resize-none static-input resizable-y" placeholder="Descrição do operador: O que aconteceu? Sintomas?"></textarea>
                         
-                        <!-- Imagens -->
                         <div id="sec2-imgs" class="grid grid-cols-2 gap-2 flex-grow overflow-hidden min-h-0">
                             <!-- Imagem 1 -->
                             <div class="image-upload-box" id="box-imgDesc1" onclick="triggerUpload('imgDesc1')">
@@ -470,7 +463,6 @@
                                     <p class="text-[9px]">Evidência Operação 1</p>
                                 </div>
                                 <img id="view-imgDesc1" class="uploaded-img hidden" src="" alt="Evidencia" onclick="openImageModal(this.src); event.stopPropagation()">
-                                
                                 <div id="actions-view-imgDesc1" class="img-actions hidden no-print">
                                     <button class="img-action-btn" onclick="triggerUpload('imgDesc1'); event.stopPropagation()"><i class="fas fa-pen text-[10px]"></i></button>
                                     <button class="img-action-btn delete" onclick="removeImage('view-imgDesc1', 'ph-imgDesc1', 'imgDesc1'); event.stopPropagation()"><i class="fas fa-trash text-[10px]"></i></button>
@@ -484,7 +476,6 @@
                                     <p class="text-[9px]">Evidência Operação 2</p>
                                 </div>
                                 <img id="view-imgDesc2" class="uploaded-img hidden" src="" alt="Evidencia" onclick="openImageModal(this.src); event.stopPropagation()">
-                                
                                 <div id="actions-view-imgDesc2" class="img-actions hidden no-print">
                                     <button class="img-action-btn" onclick="triggerUpload('imgDesc2'); event.stopPropagation()"><i class="fas fa-pen text-[10px]"></i></button>
                                     <button class="img-action-btn delete" onclick="removeImage('view-imgDesc2', 'ph-imgDesc2', 'imgDesc2'); event.stopPropagation()"><i class="fas fa-trash text-[10px]"></i></button>
@@ -496,7 +487,7 @@
 
                 <!-- 3. EVIDÊNCIAS ENGENHARIA -->
                 <div class="flex-grow">
-                    <div class="section-header group"> <!-- Classe group para hover -->
+                    <div class="section-header group">
                         <span><i class="fas fa-search mr-2"></i> 3. Evidências Técnicas (Engenharia)</span>
                         <select id="layoutSec3" onchange="updateLayout('sec3', this.value)" class="layout-selector-fade" title="Alterar Layout">
                             <option value="default">Layout Padrão</option>
@@ -517,7 +508,6 @@
                                     <p class="text-[9px]">Evidência Técnica 1</p>
                                 </div>
                                 <img id="view-imgEng1" class="uploaded-img hidden" src="" alt="Evidencia" onclick="openImageModal(this.src); event.stopPropagation()">
-                                
                                 <div id="actions-view-imgEng1" class="img-actions hidden no-print">
                                     <button class="img-action-btn" onclick="triggerUpload('imgEng1'); event.stopPropagation()"><i class="fas fa-pen text-[10px]"></i></button>
                                     <button class="img-action-btn delete" onclick="removeImage('view-imgEng1', 'ph-imgEng1', 'imgEng1'); event.stopPropagation()"><i class="fas fa-trash text-[10px]"></i></button>
@@ -531,7 +521,6 @@
                                     <p class="text-[9px]">Evidência Técnica 2</p>
                                 </div>
                                 <img id="view-imgEng2" class="uploaded-img hidden" src="" alt="Evidencia" onclick="openImageModal(this.src); event.stopPropagation()">
-                                
                                 <div id="actions-view-imgEng2" class="img-actions hidden no-print">
                                     <button class="img-action-btn" onclick="triggerUpload('imgEng2'); event.stopPropagation()"><i class="fas fa-pen text-[10px]"></i></button>
                                     <button class="img-action-btn delete" onclick="removeImage('view-imgEng2', 'ph-imgEng2', 'imgEng2'); event.stopPropagation()"><i class="fas fa-trash text-[10px]"></i></button>
@@ -559,7 +548,7 @@
                         </div>
                     </div>
 
-                    <!-- Ishikawa (Com correção de Overflow) -->
+                    <!-- Ishikawa -->
                     <div id="view-ishikawa" class="analysis-option flex-grow border border-gray-300 rounded bg-white p-1 overflow-hidden relative">
                         <div class="image-upload-box bg-white h-full w-full border-none" id="box-diagramImg" onclick="triggerUpload('diagramImg')">
                             <input type="file" id="diagramImg" class="hidden" accept="image/*" onchange="previewImage(this, 'view-diagramImg', 'ph-diagramImg')">
@@ -568,7 +557,6 @@
                                 <p class="text-xs">Arraste ou Clique para imagem do Diagrama</p>
                             </div>
                             <img id="view-diagramImg" class="uploaded-img hidden" src="" alt="Diagrama" onclick="openImageModal(this.src); event.stopPropagation()">
-                            
                             <div id="actions-view-diagramImg" class="img-actions hidden no-print">
                                 <button class="img-action-btn" onclick="triggerUpload('diagramImg'); event.stopPropagation()"><i class="fas fa-pen text-[10px]"></i></button>
                                 <button class="img-action-btn delete" onclick="removeImage('view-diagramImg', 'ph-diagramImg', 'diagramImg'); event.stopPropagation()"><i class="fas fa-trash text-[10px]"></i></button>
@@ -606,7 +594,6 @@
                     <div class="section-header">
                         <span><i class="fas fa-wrench mr-2"></i> 5. Solução Técnica Adotada</span>
                     </div>
-                    <!-- ID Adicionado para rastreamento de tamanho -->
                     <textarea id="solutionText" class="input-bare w-full h-16 text-sm resizable-y static-input" placeholder="Descrição técnica da resolução..."></textarea>
                 </div>
 
@@ -630,7 +617,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- As linhas serão geradas ou restauradas aqui -->
+                                <!-- Linhas dinâmicas -->
                             </tbody>
                         </table>
                     </div>
@@ -639,18 +626,18 @@
             </div>
         </div>
 
-        <!-- RODAPÉ (PARTICIPANTES APENAS) -->
+        <!-- RODAPÉ -->
         <footer class="mt-auto pt-2 border-t-2 border-gray-300">
-            
-            <!-- SEÇÃO: PARTICIPANTES DA ANÁLISE -->
             <div class="mb-1 px-1">
                 <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Equipe Multidisciplinar / Participantes da Análise</label>
-                <!-- ID Adicionado para rastreamento de tamanho -->
                 <textarea id="participantsText" class="input-bare w-full h-10 text-xs resize-none static-input bg-gray-50 resizable-y" placeholder="Liste aqui os nomes dos participantes envolvidos na análise..."></textarea>
             </div>
         </footer>
 
     </div>
+
+    <!-- DADOS EMBUTIDOS (Placeholder) -->
+    <script id="raf-data-embedded" type="application/json"></script>
 
     <script>
         // --- FUNÇÃO TOAST ---
@@ -659,10 +646,7 @@
             const toast = document.createElement('div');
             toast.className = 'toast';
             toast.innerHTML = `<i class="fas fa-exclamation-circle"></i> <span>${message}</span>`;
-            
             container.appendChild(toast);
-
-            // Remove após 3 segundos
             setTimeout(() => {
                 toast.style.animation = 'fadeOut 0.3s ease-out forwards';
                 setTimeout(() => {
@@ -682,21 +666,18 @@
                 { box: 'box-imgEng2', input: 'imgEng2' },
                 { box: 'box-diagramImg', input: 'diagramImg' }
             ];
-
             dropZones.forEach(zone => setupDragAndDrop(zone.box, zone.input));
 
-            // Iniciar com 3 linhas na tabela
+            // Tabela Inicial
             if(document.querySelector('#actionTable tbody').children.length === 0) {
-                addActionRow();
-                addActionRow();
-                addActionRow();
+                addActionRow(); addActionRow(); addActionRow();
             }
 
-            // Atualiza cor inicial da criticidade
+            // Cor Criticidade
             const critSelect = document.getElementById('criticalitySelect');
             if(critSelect) updateCriticalityColor(critSelect);
 
-            // Listener para mudar título da página conforme o ID
+            // Título Dinâmico
             const idInput = document.getElementById('reportIdInput');
             if(idInput) {
                 document.title = idInput.value || "Relatório de Análise de Falha (RAF)";
@@ -704,383 +685,36 @@
                     document.title = e.target.value || "Relatório de Análise de Falha (RAF)";
                 });
             }
+
+            // *** CARREGAMENTO AUTOMÁTICO DE DADOS EMBUTIDOS ***
+            const embeddedScript = document.getElementById('raf-data-embedded');
+            if (embeddedScript && embeddedScript.textContent.trim()) {
+                try {
+                    const data = JSON.parse(embeddedScript.textContent);
+                    applyLoadedData(data);
+                    // Não mostramos toast de carregamento para parecer nativo
+                } catch (e) {
+                    console.error("Erro ao carregar dados embutidos", e);
+                }
+            }
         });
 
-
-        // --- MODAL IMAGE ---
-        function openImageModal(src) {
-            const modal = document.getElementById('image-modal');
-            const modalImg = document.getElementById('modal-img');
-            modalImg.src = src;
-            modal.style.display = 'flex';
-        }
-
-        function closeImageModal() {
-            document.getElementById('image-modal').style.display = 'none';
-        }
-
-
-        // --- CRITICIDADE COR DINAMICA ---
-        function updateCriticalityColor(select) {
-            // Remove classes de cor anteriores
-            select.classList.remove('text-red-600', 'text-yellow-600', 'text-green-600');
-            
-            // Adiciona a nova com base no valor
-            if (select.value === 'alta') {
-                select.classList.add('text-red-600');
-            } else if (select.value === 'media') {
-                select.classList.add('text-yellow-600');
-            } else if (select.value === 'baixa') {
-                select.classList.add('text-green-600');
-            }
-        }
-
-
-        // --- LIMPAR RELATÓRIO ---
-        function clearReport() {
-            if (!confirm("Tem a certeza que deseja limpar todo o formulário? Todas as informações não salvas serão perdidas.")) {
-                return;
-            }
-
-            // 1. Reset Inputs Estáticos
-            const inputs = document.querySelectorAll('.static-input');
-            inputs.forEach(input => {
-                if (input.id === 'reportIdInput') {
-                    input.value = 'RFA-2026-001';
-                    document.title = 'Relatório de Análise de Falha (RAF)';
-                } else {
-                    input.value = '';
-                }
-            });
-
-            // 2. Reset Selects Específicos
-            const critSelect = document.getElementById('criticalitySelect');
-            critSelect.value = 'alta';
-            updateCriticalityColor(critSelect);
-
-            const analysisSelect = document.getElementById('analysisSelector');
-            analysisSelect.value = 'ishikawa';
-            toggleAnalysis('ishikawa');
-
-            const layout2 = document.getElementById('layoutSec2');
-            layout2.value = 'default';
-            updateLayout('sec2', 'default');
-            
-            const layout3 = document.getElementById('layoutSec3');
-            layout3.value = 'default';
-            updateLayout('sec3', 'default');
-
-            // 3. Reset Imagens
-            const imgIds = ['logoImg', 'view-imgDesc1', 'view-imgDesc2', 'view-imgEng1', 'view-imgEng2', 'view-diagramImg'];
-            const placeholders = {
-                'logoImg': 'logoPlaceholder',
-                'view-imgDesc1': 'ph-imgDesc1',
-                'view-imgDesc2': 'ph-imgDesc2',
-                'view-imgEng1': 'ph-imgEng1',
-                'view-imgEng2': 'ph-imgEng2',
-                'view-diagramImg': 'ph-diagramImg'
-            };
-
-            imgIds.forEach(id => {
-                const img = document.getElementById(id);
-                const placeholderId = placeholders[id];
-                const placeholder = document.getElementById(placeholderId);
-                const parent = img.parentElement;
-                
-                // Buscar container de ações dinâmico
-                const actionsId = 'actions-' + id;
-                const actions = document.getElementById(actionsId);
-
-                img.src = '';
-                img.classList.add('hidden');
-                if (placeholder) placeholder.classList.remove('hidden');
-                if (actions) actions.classList.add('hidden');
-
-                // Resetar bordas (exceto logo box que não muda classe)
-                if (!parent.classList.contains('logo-upload-box')) {
-                     parent.classList.remove('border-solid');
-                     parent.classList.add('border-dashed');
-                }
-            });
-
-            // 4. Reset Tabela
-            const tbody = document.querySelector('#actionTable tbody');
-            tbody.innerHTML = '';
-            addActionRow();
-            addActionRow();
-            addActionRow();
-
-            // 5. Reset Dimensões
-            const resizableIds = ['sec2-text', 'sec3-text', 'sec2-imgs', 'sec3-imgs', 'solutionText', 'participantsText', 'logoBox'];
-            resizableIds.forEach(id => {
-                const el = document.getElementById(id);
-                if(el) {
-                    el.style.width = '';
-                    el.style.height = '';
-                }
-            });
-
-            showToast("Formulário limpo com sucesso.");
-        }
-
-
-        // --- REMOVER IMAGEM ---
-        function removeImage(imgId, placeholderId, inputId) {
-            const img = document.getElementById(imgId);
-            const placeholder = document.getElementById(placeholderId);
-            const input = document.getElementById(inputId);
-            const actions = document.getElementById('actions-' + imgId);
-            const parent = placeholder.parentElement;
-
-            img.src = "";
-            img.classList.add('hidden');
-            placeholder.classList.remove('hidden');
-            if (actions) actions.classList.add('hidden');
-            if (input) input.value = ""; // Reset do input file
-
-            // Reset borders
-            if(!parent.classList.contains('logo-upload-box')) {
-                parent.classList.remove('border-solid');
-                parent.classList.add('border-dashed');
-            }
-        }
-
-
-        // --- LAYOUT UPDATE LOGIC ---
-        function updateLayout(sectionPrefix, type) {
-            const container = document.getElementById(`${sectionPrefix}-container`);
-            const text = document.getElementById(`${sectionPrefix}-text`);
-            const imgsContainer = document.getElementById(`${sectionPrefix}-imgs`);
-            const secondImg = imgsContainer.children[1]; 
-
-            // Limpa estilos inline que possam ter sido adicionados pelo resize manual
-            text.style.height = ''; 
-            text.style.width = '';
-            imgsContainer.style.height = '';
-            imgsContainer.style.width = '';
-
-            // Reset classes
-            container.className = "h-44 transition-all duration-200 border border-transparent hover:border-gray-200 transition-colors rounded p-0.5";
-            text.className = "input-bare text-sm static-input"; // Remove classes especificas de layout
-            imgsContainer.className = "gap-2 overflow-hidden min-h-0"; // Reset base
-
-            secondImg.classList.remove('hidden');
-            secondImg.classList.remove('layout-hidden');
-            imgsContainer.classList.remove('hidden');
-            imgsContainer.classList.remove('layout-hidden');
-
-            if (type === 'default') {
-                container.classList.add('flex', 'flex-col', 'gap-2');
-                text.classList.add('w-full', 'h-16', 'resizable-y'); // Altura inicial definida
-                imgsContainer.classList.add('flex-grow', 'grid', 'grid-cols-2');
-            } 
-            else if (type === 'side') {
-                container.classList.add('flex', 'flex-row', 'gap-2');
-                text.classList.add('flex-1', 'h-full', 'resize-none');
-                imgsContainer.classList.add('w-1/3', 'h-full', 'resizable-x', 'grid', 'grid-cols-1');
-                
-                // Esconde a segunda imagem
-                secondImg.classList.add('hidden', 'layout-hidden');
-            } 
-            else if (type === 'text') {
-                container.classList.add('block');
-                text.classList.add('w-full', 'h-full', 'resize-none');
-                imgsContainer.classList.add('hidden', 'layout-hidden');
-            }
-        }
-
-
-        // --- FUNÇÕES DE DATA (MÁSCARA) ---
-        function dateMask(input) {
-            let v = input.value.replace(/\D/g, ''); // Remove tudo que não é dígito
-            
-            if (v.length > 8) v = v.slice(0, 8); // Limita a 8 dígitos (ddmmyyyy)
-
-            if (v.length > 4) {
-                input.value = `${v.slice(0, 2)}/${v.slice(2, 4)}/${v.slice(4)}`;
-            } else if (v.length > 2) {
-                input.value = `${v.slice(0, 2)}/${v.slice(2)}`;
-            } else {
-                input.value = v;
-            }
-        }
-
-        // --- FUNÇÕES DE IMAGEM ---
-
-        function triggerUpload(id) {
-            document.getElementById(id).click();
-        }
-
-        function previewImage(input, imgId, placeholderId) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    displayImage(e.target.result, imgId, placeholderId);
-                }
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-
-        function displayImage(base64Data, imgId, placeholderId) {
-            const img = document.getElementById(imgId);
-            const placeholder = document.getElementById(placeholderId);
-            const parent = placeholder.parentElement;
-            const actionsId = 'actions-' + imgId;
-            const actions = document.getElementById(actionsId);
-
-            img.src = base64Data;
-            img.classList.remove('hidden');
-            if(placeholder) placeholder.classList.add('hidden');
-            if(actions) actions.classList.remove('hidden'); // Show actions
-            
-            // Remove borda dashed e poe solid (exceto no logo que tem estilo fixo)
-            if(!parent.classList.contains('logo-upload-box')) {
-                parent.classList.add('border-solid');
-                parent.classList.remove('border-dashed');
-            }
-        }
-
-        // --- DRAG AND DROP ---
-        
-        function setupDragAndDrop(boxId, inputId) {
-            const box = document.getElementById(boxId);
-            const input = document.getElementById(inputId);
-            
-            // Previne comportamento padrão
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                box.addEventListener(eventName, preventDefaults, false);
-            });
-
-            function preventDefaults(e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-
-            // Destaque visual
-            ['dragenter', 'dragover'].forEach(eventName => {
-                box.addEventListener(eventName, () => box.classList.add('drag-over'), false);
-            });
-
-            ['dragleave', 'drop'].forEach(eventName => {
-                box.addEventListener(eventName, () => box.classList.remove('drag-over'), false);
-            });
-
-            // Handle Drop
-            box.addEventListener('drop', (e) => {
-                const dt = e.dataTransfer;
-                const files = dt.files;
-
-                if (files.length > 0) {
-                    input.files = files; // Atualiza o input file
-                    // Dispara o evento change manualmente para rodar o preview
-                    const event = new Event('change');
-                    input.dispatchEvent(event);
-                }
-            });
-        }
-
-
-        // --- TABELA DE AÇÃO ---
-
-        function addActionRow(data = null) {
-            const table = document.getElementById('actionTable').getElementsByTagName('tbody')[0];
-            const newRow = table.insertRow();
-            newRow.className = "border-b hover:bg-gray-50 align-top"; // align-top para textarea multiline
-            
-            const valAction = data ? data.action : '';
-            const valResp = data ? data.resp : '';
-            const valDate = data ? data.date : '';
-            const valStatus = data ? data.status : 'aberto';
-
-            // Campo Ação agora é Textarea para quebra de texto
-            newRow.innerHTML = `
-                <td class="border-r p-1">
-                    <textarea class="input-bare border-none focus:ring-0 bg-transparent w-full text-xs resize-none overflow-hidden" 
-                              rows="1" 
-                              placeholder="Ação..."
-                              oninput="autoResizeRow(this)">${valAction}</textarea>
-                </td>
-                <td class="border-r align-middle"><input type="text" value="${valResp}" class="input-bare border-none focus:ring-0 bg-transparent w-full text-xs" placeholder="Resp."></td>
-                <td class="border-r align-middle"><input type="text" value="${valDate}" class="input-bare border-none focus:ring-0 bg-transparent w-full text-xs" placeholder="dd/mm/yyyy" maxlength="10" oninput="dateMask(this)"></td>
-                <td class="text-center align-middle">
-                    <select class="bg-transparent text-[10px] font-bold text-center w-full focus:outline-none" onchange="updateStatusColor(this)">
-                        <option value="aberto" ${valStatus === 'aberto' ? 'selected' : ''}>Aberto</option>
-                        <option value="andamento" ${valStatus === 'andamento' ? 'selected' : ''}>Andamento</option>
-                        <option value="concluido" ${valStatus === 'concluido' ? 'selected' : ''}>Concluído</option>
-                    </select>
-                </td>
-                <td class="text-center align-middle no-print"><button onclick="removeRow(this)" class="text-red-400"><i class="fas fa-times"></i></button></td>
-            `;
-            // Atualizar cor inicial
-            updateStatusColor(newRow.querySelector('select'));
-            // Ajustar altura inicial se tiver texto
-            if(valAction) {
-                const ta = newRow.querySelector('textarea');
-                autoResizeRow(ta);
-            }
-        }
-
-        function autoResizeRow(textarea) {
-            textarea.style.height = 'auto'; // Reseta
-            textarea.style.height = textarea.scrollHeight + 'px'; // Ajusta
-        }
-
-        function removeRow(btn) {
-            const row = btn.parentNode.parentNode;
-            row.parentNode.removeChild(row);
-        }
-
-        function updateStatusColor(select) {
-            select.className = "bg-transparent text-[10px] font-bold text-center w-full focus:outline-none " + 
-                (select.value === 'aberto' ? 'text-red-600' : 
-                 select.value === 'andamento' ? 'text-yellow-600' : 'text-green-600');
-        }
-
-        function toggleAnalysis(value) {
-            const ishikawa = document.getElementById('view-ishikawa');
-            const whys = document.getElementById('view-5whys');
-            
-            if (value === 'ishikawa') {
-                ishikawa.classList.remove('hidden');
-                whys.classList.add('hidden');
-            } else {
-                ishikawa.classList.add('hidden');
-                whys.classList.remove('hidden');
-            }
-        }
-
-
-        // --- SALVAR E CARREGAR (PERSISTÊNCIA) ---
-
-        function saveReportData() {
-            // Obter ID do Relatório para nomear o arquivo
-            const reportIdInput = document.getElementById('reportIdInput');
-            const reportName = reportIdInput && reportIdInput.value ? reportIdInput.value.trim() : "relatorio_rcfa";
-
+        // --- MANIPULAÇÃO DE DADOS ---
+        function collectData() {
             const data = {
-                // 1. Inputs Estáticos
                 staticInputs: [],
-                // 2. Imagens
                 images: {},
-                // 3. Tabela Dinâmica
                 tableRows: [],
-                // 4. Configurações
                 analysisType: document.getElementById('analysisSelector').value,
                 layoutSec2: document.getElementById('layoutSec2').value,
                 layoutSec3: document.getElementById('layoutSec3').value,
-                // 5. Criticidade
                 criticality: document.getElementById('criticalitySelect').value,
-                // 6. Dimensões Personalizadas (Resize)
                 dimensions: {}
             };
 
-            // Coletar Inputs Estáticos
             const inputs = document.querySelectorAll('.static-input');
-            inputs.forEach((input, index) => {
-                data.staticInputs.push(input.value);
-            });
+            inputs.forEach((input) => data.staticInputs.push(input.value));
 
-            // Coletar Imagens
             const imgIds = ['logoImg', 'view-imgDesc1', 'view-imgDesc2', 'view-imgEng1', 'view-imgEng2', 'view-diagramImg'];
             imgIds.forEach(id => {
                 const img = document.getElementById(id);
@@ -1089,13 +723,9 @@
                 }
             });
 
-            // Coletar Dados da Tabela
             const rows = document.querySelectorAll('#actionTable tbody tr');
             rows.forEach(row => {
-                // Agora pegamos input, select e textarea
                 const fields = row.querySelectorAll('input, select, textarea');
-                // Ordem na DOM: Textarea(Ação), Input(Resp), Input(Data), Select(Status)
-                // fields[0]=Ação, fields[1]=Resp, fields[2]=Data, fields[3]=Status
                 if(fields.length >= 4) {
                     data.tableRows.push({
                         action: fields[0].value,
@@ -1106,26 +736,54 @@
                 }
             });
 
-            // Coletar Dimensões dos elementos redimensionáveis
             const resizableIds = ['sec2-text', 'sec3-text', 'sec2-imgs', 'sec3-imgs', 'solutionText', 'participantsText', 'logoBox'];
             resizableIds.forEach(id => {
                 const el = document.getElementById(id);
-                if(el) {
-                    data.dimensions[id] = {
-                        width: el.style.width,
-                        height: el.style.height
-                    };
-                }
+                if(el) data.dimensions[id] = { width: el.style.width, height: el.style.height };
             });
 
-            // Gerar Arquivo e Download
-            const jsonStr = JSON.stringify(data);
-            const blob = new Blob([jsonStr], {type: "application/json"});
-            const url = URL.createObjectURL(blob);
+            return data;
+        }
+
+        // --- SALVAR (EXPORTAÇÃO AUTÔNOMA) ---
+        function saveReportData() {
+            const data = collectData();
             
+            // Dados para Nome do Arquivo
+            const dateInput = document.getElementById('inputDate').value || '';
+            const tagInput = document.getElementById('inputTag').value || 'TAG';
+            const failureModeInput = document.getElementById('inputFailureMode').value || 'Modo_Falha';
+            
+            let dateFormatted = 'DATA';
+            if(dateInput) {
+                const parts = dateInput.split('/');
+                if(parts.length === 3) dateFormatted = parts[2] + parts[1] + parts[0];
+            }
+            const fileName = `${dateFormatted}_${tagInput}_${failureModeInput}.html`;
+
+            // Clonar o HTML atual
+            let fullHTML = document.documentElement.outerHTML;
+
+            // Injetar os dados no script de placeholder
+            const dataString = JSON.stringify(data);
+            
+            // Substituição robusta (case insensitive para ID)
+            const scriptRegex = /<script[^>]*id=["']raf-data-embedded["'][^>]*>[\s\S]*?<\/script>/i;
+            const newScript = `<script id="raf-data-embedded" type="application/json">${dataString}<\/script>`;
+            
+            if (scriptRegex.test(fullHTML)) {
+                fullHTML = fullHTML.replace(scriptRegex, newScript);
+            } else {
+                // Fallback: se regex falhar, tenta anexar antes do body
+                fullHTML = fullHTML.replace('</body>', `${newScript}</body>`);
+            }
+
+            // Criar Blob e Baixar
+            const blob = new Blob([fullHTML], {type: "text/html"});
+            const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `${reportName}.json`;
+            a.download = fileName;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -1138,10 +796,32 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
-                    const data = JSON.parse(e.target.result);
-                    applyLoadedData(data);
+                    let data;
+                    const content = e.target.result;
+                    
+                    if (content.trim().startsWith('{')) {
+                        data = JSON.parse(content); // JSON Antigo
+                    } else {
+                        // HTML Autônomo
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(content, "text/html");
+                        const script = doc.getElementById('raf-data-embedded');
+                        if (script) {
+                            // Se script existe mas está vazio, pode lançar erro no parse
+                            if(script.textContent.trim()) {
+                                data = JSON.parse(script.textContent);
+                            }
+                        }
+                    }
+
+                    if(data) {
+                        applyLoadedData(data);
+                        showToast("Relatório carregado com sucesso!");
+                    } else {
+                        throw new Error("Dados não encontrados no arquivo.");
+                    }
                 } catch (err) {
-                    showToast("Erro ao ler arquivo. Certifique-se que é um JSON válido.");
+                    showToast("Erro ao ler arquivo.");
                     console.error(err);
                 }
             };
@@ -1149,46 +829,35 @@
         }
 
         function applyLoadedData(data) {
-            // 1. Restaurar Inputs Estáticos
+            // Inputs
             const inputs = document.querySelectorAll('.static-input');
-            if (data.staticInputs && data.staticInputs.length === inputs.length) {
+            if (data.staticInputs) {
                 inputs.forEach((input, index) => {
-                    input.value = data.staticInputs[index];
+                    if (data.staticInputs[index] !== undefined) input.value = data.staticInputs[index];
                 });
             }
             
-            // Atualizar o título da página baseado no ID carregado
             const reportIdInput = document.getElementById('reportIdInput');
-            if(reportIdInput) {
-                document.title = reportIdInput.value || "Relatório de Análise de Falha (RAF)";
-            }
+            if(reportIdInput) document.title = reportIdInput.value || "Relatório de Análise de Falha (RAF)";
 
-            // Restaurar Criticidade (Cor e Valor)
+            // Criticidade
             if (data.criticality) {
-                const critSelect = document.getElementById('criticalitySelect');
-                if(critSelect) {
-                    critSelect.value = data.criticality;
-                    updateCriticalityColor(critSelect);
-                }
+                const s = document.getElementById('criticalitySelect');
+                s.value = data.criticality;
+                updateCriticalityColor(s);
             }
 
-            // 2. Restaurar Imagens e Mostrar Botões
-            const imgMap = {
-                'logoImg': 'logoPlaceholder',
-                'view-imgDesc1': 'ph-imgDesc1',
-                'view-imgDesc2': 'ph-imgDesc2',
-                'view-imgEng1': 'ph-imgEng1',
-                'view-imgEng2': 'ph-imgEng2',
-                'view-diagramImg': 'ph-diagramImg'
-            };
-
+            // Imagens
             for (const [imgId, src] of Object.entries(data.images || {})) {
-                if (imgMap[imgId]) {
-                    displayImage(src, imgId, imgMap[imgId]);
-                }
+                // Mapeamento ID -> Placeholder
+                let phId = '';
+                if(imgId === 'logoImg') phId = 'logoPlaceholder';
+                else if(imgId.includes('view-')) phId = imgId.replace('view-', 'ph-');
+                
+                if(phId) displayImage(src, imgId, phId);
             }
 
-            // 3. Restaurar Tabela
+            // Tabela
             const tbody = document.querySelector('#actionTable tbody');
             tbody.innerHTML = '';
             if (data.tableRows && data.tableRows.length > 0) {
@@ -1197,24 +866,21 @@
                 addActionRow(); addActionRow(); addActionRow();
             }
 
-            // 4. Restaurar Tipo de Análise e Layouts
+            // Layouts & Análise
             if (data.analysisType) {
-                const selector = document.getElementById('analysisSelector');
-                selector.value = data.analysisType;
+                document.getElementById('analysisSelector').value = data.analysisType;
                 toggleAnalysis(data.analysisType);
             }
             if (data.layoutSec2) {
-                const s2 = document.getElementById('layoutSec2');
-                s2.value = data.layoutSec2;
+                document.getElementById('layoutSec2').value = data.layoutSec2;
                 updateLayout('sec2', data.layoutSec2);
             }
             if (data.layoutSec3) {
-                const s3 = document.getElementById('layoutSec3');
-                s3.value = data.layoutSec3;
+                document.getElementById('layoutSec3').value = data.layoutSec3;
                 updateLayout('sec3', data.layoutSec3);
             }
 
-            // 5. Restaurar Dimensões (após o updateLayout)
+            // Dimensões
             if (data.dimensions) {
                 for (const [id, dims] of Object.entries(data.dimensions)) {
                     const el = document.getElementById(id);
@@ -1226,6 +892,217 @@
             }
         }
 
+        // --- MODAL IMAGE ---
+        function openImageModal(src) {
+            document.getElementById('modal-img').src = src;
+            document.getElementById('image-modal').style.display = 'flex';
+        }
+        function closeImageModal() {
+            document.getElementById('image-modal').style.display = 'none';
+        }
+
+        // --- AUXILIARES (UI) ---
+        function updateCriticalityColor(select) {
+            select.classList.remove('text-red-600', 'text-yellow-600', 'text-green-600');
+            if (select.value === 'alta') select.classList.add('text-red-600');
+            else if (select.value === 'media') select.classList.add('text-yellow-600');
+            else if (select.value === 'baixa') select.classList.add('text-green-600');
+        }
+
+        // Fix: function was missing
+        function updateStatusColor(select) {
+            select.className = "bg-transparent text-[10px] font-bold text-center w-full focus:outline-none " + 
+                (select.value === 'aberto' ? 'text-red-600' : 
+                 select.value === 'andamento' ? 'text-yellow-600' : 'text-green-600');
+        }
+
+        function clearReport() {
+            if (!confirm("Deseja limpar todo o formulário?")) return;
+            
+            // Reset Inputs
+            document.querySelectorAll('.static-input').forEach(i => i.value = '');
+            document.getElementById('reportIdInput').value = 'RFA-2026-001';
+            
+            // Reset Selects
+            document.getElementById('criticalitySelect').value = 'alta';
+            updateCriticalityColor(document.getElementById('criticalitySelect'));
+            document.getElementById('analysisSelector').value = 'ishikawa';
+            toggleAnalysis('ishikawa');
+            
+            // Reset Layouts
+            ['sec2', 'sec3'].forEach(sec => {
+                document.getElementById(`layout${sec.charAt(0).toUpperCase() + sec.slice(1)}`).value = 'default';
+                updateLayout(sec, 'default');
+            });
+
+            // Reset Imagens
+            const imgIds = ['logoImg', 'view-imgDesc1', 'view-imgDesc2', 'view-imgEng1', 'view-imgEng2', 'view-diagramImg'];
+            const phIds = ['logoPlaceholder', 'ph-imgDesc1', 'ph-imgDesc2', 'ph-imgEng1', 'ph-imgEng2', 'ph-diagramImg'];
+            const inpIds = ['logoInput', 'imgDesc1', 'imgDesc2', 'imgEng1', 'imgEng2', 'diagramImg'];
+            
+            imgIds.forEach((id, idx) => removeImage(id, phIds[idx], inpIds[idx]));
+
+            // Reset Tabela
+            const tbody = document.querySelector('#actionTable tbody');
+            tbody.innerHTML = '';
+            addActionRow(); addActionRow(); addActionRow();
+
+            // Reset Dimensões
+            ['sec2-text', 'sec3-text', 'sec2-imgs', 'sec3-imgs', 'solutionText', 'participantsText', 'logoBox'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) { el.style.width = ''; el.style.height = ''; }
+            });
+
+            showToast("Formulário limpo.");
+        }
+
+        function removeImage(imgId, placeholderId, inputId) {
+            const img = document.getElementById(imgId);
+            const ph = document.getElementById(placeholderId);
+            const inp = document.getElementById(inputId);
+            const actions = document.getElementById('actions-' + imgId);
+            const parent = ph.parentElement;
+
+            img.src = "";
+            img.classList.add('hidden');
+            ph.classList.remove('hidden');
+            if (actions) actions.classList.add('hidden');
+            if (inp) inp.value = "";
+
+            if(!parent.classList.contains('logo-upload-box')) {
+                parent.classList.remove('border-solid');
+                parent.classList.add('border-dashed');
+            }
+        }
+
+        function updateLayout(sec, type) {
+            const c = document.getElementById(`${sec}-container`);
+            const t = document.getElementById(`${sec}-text`);
+            const imgs = document.getElementById(`${sec}-imgs`);
+            const img2 = imgs.children[1];
+
+            // Reset styles
+            t.style.height = ''; t.style.width = '';
+            imgs.style.height = ''; imgs.style.width = '';
+            
+            c.className = "h-44 border border-transparent hover:border-gray-200 transition-colors rounded p-0.5";
+            t.className = "input-bare text-sm static-input";
+            imgs.className = "gap-2 overflow-hidden min-h-0";
+            
+            img2.classList.remove('hidden', 'layout-hidden');
+            imgs.classList.remove('hidden', 'layout-hidden');
+
+            if (type === 'default') {
+                c.classList.add('flex', 'flex-col', 'gap-2');
+                t.classList.add('w-full', 'h-16', 'resizable-y');
+                imgs.classList.add('flex-grow', 'grid', 'grid-cols-2');
+            } else if (type === 'side') {
+                c.classList.add('flex', 'flex-row', 'gap-2');
+                t.classList.add('flex-1', 'h-full', 'resize-none');
+                imgs.classList.add('w-1/3', 'h-full', 'resizable-x', 'grid', 'grid-cols-1');
+                img2.classList.add('hidden', 'layout-hidden');
+            } else if (type === 'text') {
+                c.classList.add('block');
+                t.classList.add('w-full', 'h-full', 'resize-none');
+                imgs.classList.add('hidden', 'layout-hidden');
+            }
+        }
+
+        function dateMask(i) {
+            let v = i.value.replace(/\D/g, '');
+            if (v.length > 8) v = v.slice(0, 8);
+            if (v.length > 4) i.value = `${v.slice(0, 2)}/${v.slice(2, 4)}/${v.slice(4)}`;
+            else if (v.length > 2) i.value = `${v.slice(0, 2)}/${v.slice(2)}`;
+            else i.value = v;
+        }
+
+        function triggerUpload(id) { document.getElementById(id).click(); }
+
+        function previewImage(input, imgId, phId) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => displayImage(e.target.result, imgId, phId);
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function displayImage(base64, imgId, phId) {
+            const img = document.getElementById(imgId);
+            const ph = document.getElementById(phId);
+            const actions = document.getElementById('actions-' + imgId);
+            const parent = ph.parentElement;
+
+            img.src = base64;
+            img.classList.remove('hidden');
+            if(ph) ph.classList.add('hidden');
+            if(actions) actions.classList.remove('hidden');
+
+            if(!parent.classList.contains('logo-upload-box')) {
+                parent.classList.add('border-solid');
+                parent.classList.remove('border-dashed');
+            }
+        }
+
+        function setupDragAndDrop(boxId, inputId) {
+            const box = document.getElementById(boxId);
+            const input = document.getElementById(inputId);
+            
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eName => {
+                box.addEventListener(eName, e => { e.preventDefault(); e.stopPropagation(); }, false);
+            });
+            
+            ['dragenter', 'dragover'].forEach(eName => {
+                box.addEventListener(eName, () => box.classList.add('drag-over'), false);
+            });
+            ['dragleave', 'drop'].forEach(eName => {
+                box.addEventListener(eName, () => box.classList.remove('drag-over'), false);
+            });
+
+            box.addEventListener('drop', e => {
+                const dt = e.dataTransfer;
+                if (dt.files.length > 0) {
+                    input.files = dt.files;
+                    input.dispatchEvent(new Event('change'));
+                }
+            });
+        }
+
+        function addActionRow(data = null) {
+            const tbody = document.querySelector('#actionTable tbody');
+            const row = tbody.insertRow();
+            row.className = "border-b hover:bg-gray-50 align-top";
+            
+            const act = data ? data.action : '';
+            const resp = data ? data.resp : '';
+            const date = data ? data.date : '';
+            const stat = data ? data.status : 'aberto';
+
+            row.innerHTML = `
+                <td class="border-r p-1">
+                    <textarea class="input-bare border-none focus:ring-0 bg-transparent w-full text-xs resize-none overflow-hidden" 
+                              rows="1" placeholder="Ação..." oninput="autoResizeRow(this)">${act}</textarea>
+                </td>
+                <td class="border-r align-middle"><input type="text" value="${resp}" class="input-bare border-none focus:ring-0 bg-transparent w-full text-xs" placeholder="Resp."></td>
+                <td class="border-r align-middle"><input type="text" value="${date}" class="input-bare border-none focus:ring-0 bg-transparent w-full text-xs" placeholder="dd/mm/yyyy" maxlength="10" oninput="dateMask(this)"></td>
+                <td class="text-center align-middle">
+                    <select class="bg-transparent text-[10px] font-bold text-center w-full focus:outline-none" onchange="updateStatusColor(this)">
+                        <option value="aberto" ${stat === 'aberto' ? 'selected' : ''}>Aberto</option>
+                        <option value="andamento" ${stat === 'andamento' ? 'selected' : ''}>Andamento</option>
+                        <option value="concluido" ${stat === 'concluido' ? 'selected' : ''}>Concluído</option>
+                    </select>
+                </td>
+                <td class="text-center align-middle no-print"><button onclick="removeRow(this)" class="text-red-400"><i class="fas fa-times"></i></button></td>
+            `;
+            updateStatusColor(row.querySelector('select'));
+            if(act) autoResizeRow(row.querySelector('textarea'));
+        }
+
+        function autoResizeRow(t) { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }
+        function removeRow(btn) { btn.closest('tr').remove(); }
+        function toggleAnalysis(v) {
+            document.getElementById('view-ishikawa').classList.toggle('hidden', v !== 'ishikawa');
+            document.getElementById('view-5whys').classList.toggle('hidden', v !== '5whys');
+        }
     </script>
 </body>
 </html>
