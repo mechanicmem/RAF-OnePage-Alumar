@@ -40,7 +40,6 @@
             gap: 10px;
         }
         .toast {
-            background-color: #ef4444;
             color: white;
             padding: 1rem;
             border-radius: 0.5rem;
@@ -52,6 +51,9 @@
             align-items: center;
             gap: 0.5rem;
         }
+        .toast-success { background-color: #22c55e; } /* Verde */
+        .toast-error { background-color: #ef4444; }   /* Vermelho */
+        
         @keyframes slideIn {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
@@ -319,9 +321,33 @@
             min-width: 100px;
             max-width: 80%;
         }
+        
+        /* Drag Overlay Global */
+        #drag-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(37, 99, 235, 0.2);
+            border: 4px dashed #2563eb;
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            color: #1e3a8a;
+            font-weight: bold;
+            pointer-events: none; /* Permite que o evento drop chegue no body */
+        }
     </style>
 </head>
-<body class="pb-10 overflow-x-auto">
+<body class="pb-10 overflow-x-auto relative">
+
+    <!-- Overlay de Drag & Drop Global -->
+    <div id="drag-overlay">
+        <span>Solte o relatório para carregar</span>
+    </div>
 
     <!-- Container para notificações Toast -->
     <div id="toast-container" class="no-print"></div>
@@ -641,11 +667,11 @@
 
     <script>
         // --- FUNÇÃO TOAST ---
-        function showToast(message) {
+        function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.innerHTML = `<i class="fas fa-exclamation-circle"></i> <span>${message}</span>`;
+            toast.className = `toast ${type === 'error' ? 'toast-error' : 'toast-success'}`;
+            toast.innerHTML = `<i class="fas ${type === 'error' ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> <span>${message}</span>`;
             container.appendChild(toast);
             setTimeout(() => {
                 toast.style.animation = 'fadeOut 0.3s ease-out forwards';
@@ -655,7 +681,7 @@
             }, 3000);
         }
 
-        // --- INICIALIZAÇÃO ---
+        // --- INICIALIZAÇÃO E DRAG & DROP GLOBAL ---
         document.addEventListener('DOMContentLoaded', () => {
             // Inicializar Drag & Drop
             const dropZones = [
@@ -692,12 +718,77 @@
                 try {
                     const data = JSON.parse(embeddedScript.textContent);
                     applyLoadedData(data);
-                    // Não mostramos toast de carregamento para parecer nativo
                 } catch (e) {
                     console.error("Erro ao carregar dados embutidos", e);
                 }
             }
+
+            // *** DRAG & DROP GLOBAL PARA CARREGAR ARQUIVO ***
+            const dragOverlay = document.getElementById('drag-overlay');
+            
+            document.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                // Mostra overlay se não estiver sobre uma área de upload de imagem
+                if (!e.target.closest('.image-upload-box') && !e.target.closest('.logo-upload-box')) {
+                    dragOverlay.style.display = 'flex';
+                }
+            });
+
+            document.addEventListener('dragleave', (e) => {
+                // Esconde se sair da janela ou do overlay
+                if (e.relatedTarget === null || e.target === dragOverlay) {
+                    dragOverlay.style.display = 'none';
+                }
+            });
+
+            document.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dragOverlay.style.display = 'none';
+
+                // Ignora se drop foi em uma área de upload de imagem específica
+                if (e.target.closest('.image-upload-box') || e.target.closest('.logo-upload-box')) return;
+
+                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                    handleFileLoadRequest(e.dataTransfer.files[0]);
+                }
+            });
         });
+
+        function handleFileLoadRequest(file) {
+            // Verifica se o formulário está "sujo" (tem dados preenchidos)
+            if (isReportDirty()) {
+                if (!confirm("O relatório atual contém dados. Carregar um novo arquivo irá sobrescrevê-los. Deseja continuar?")) {
+                    return;
+                }
+            }
+            
+            // Simula o input de arquivo
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            const fileInput = document.getElementById('loadFile');
+            fileInput.files = dataTransfer.files;
+            
+            // Chama a função de carregamento
+            loadReportData(fileInput);
+        }
+
+        // Verifica se há dados significativos no relatório
+        function isReportDirty() {
+            // Verifica inputs de texto (ignorando o ID padrão e data vazia)
+            const inputs = document.querySelectorAll('.static-input');
+            for (let input of inputs) {
+                if (input.id === 'reportIdInput' && input.value === 'RFA-2026-001') continue;
+                if (input.value.trim() !== '') return true;
+            }
+            
+            // Verifica imagens
+            const images = document.querySelectorAll('.uploaded-img');
+            for (let img of images) {
+                if (!img.classList.contains('hidden') && img.src) return true;
+            }
+            
+            return false;
+        }
 
         // --- MANIPULAÇÃO DE DADOS ---
         function collectData() {
@@ -745,8 +836,8 @@
             return data;
         }
 
-        // --- SALVAR (EXPORTAÇÃO AUTÔNOMA) ---
-        function saveReportData() {
+        // --- SALVAR (EXPORTAÇÃO AUTÔNOMA COM SAVE AS) ---
+        async function saveReportData() {
             const data = collectData();
             
             // Dados para Nome do Arquivo
@@ -766,20 +857,43 @@
 
             // Injetar os dados no script de placeholder
             const dataString = JSON.stringify(data);
-            
-            // Substituição robusta (case insensitive para ID)
             const scriptRegex = /<script[^>]*id=["']raf-data-embedded["'][^>]*>[\s\S]*?<\/script>/i;
             const newScript = `<script id="raf-data-embedded" type="application/json">${dataString}<\/script>`;
             
             if (scriptRegex.test(fullHTML)) {
                 fullHTML = fullHTML.replace(scriptRegex, newScript);
             } else {
-                // Fallback: se regex falhar, tenta anexar antes do body
                 fullHTML = fullHTML.replace('</body>', `${newScript}</body>`);
             }
 
-            // Criar Blob e Baixar
             const blob = new Blob([fullHTML], {type: "text/html"});
+
+            // Tentar usar File System Access API para "Salvar Como"
+            if (window.showSaveFilePicker) {
+                try {
+                    const handle = await window.showSaveFilePicker({
+                        suggestedName: fileName,
+                        types: [{
+                            description: 'Arquivo HTML RAF',
+                            accept: {'text/html': ['.html']},
+                        }],
+                    });
+                    const writable = await handle.createWritable();
+                    await writable.write(blob);
+                    await writable.close();
+                    showToast("Arquivo salvo com sucesso!", 'success');
+                    return;
+                } catch (err) {
+                    if (err.name !== 'AbortError') {
+                        console.error("Erro ao usar File Picker:", err);
+                        // Fallback para download clássico abaixo
+                    } else {
+                        return; // Usuário cancelou
+                    }
+                }
+            }
+
+            // Fallback clássico
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -787,6 +901,7 @@
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
+            showToast("Arquivo salvo com sucesso!", 'success');
         }
 
         function loadReportData(input) {
@@ -802,28 +917,26 @@
                     if (content.trim().startsWith('{')) {
                         data = JSON.parse(content); // JSON Antigo
                     } else {
-                        // HTML Autônomo
                         const parser = new DOMParser();
                         const doc = parser.parseFromString(content, "text/html");
                         const script = doc.getElementById('raf-data-embedded');
-                        if (script) {
-                            // Se script existe mas está vazio, pode lançar erro no parse
-                            if(script.textContent.trim()) {
-                                data = JSON.parse(script.textContent);
-                            }
+                        if (script && script.textContent.trim()) {
+                            data = JSON.parse(script.textContent);
                         }
                     }
 
                     if(data) {
                         applyLoadedData(data);
-                        showToast("Relatório carregado com sucesso!");
+                        showToast("Relatório carregado com sucesso!", 'success');
                     } else {
-                        throw new Error("Dados não encontrados no arquivo.");
+                        showToast("Dados não encontrados no arquivo.", 'error');
                     }
                 } catch (err) {
-                    showToast("Erro ao ler arquivo.");
+                    showToast("Erro ao ler arquivo.", 'error');
                     console.error(err);
                 }
+                // Limpa o input para permitir carregar o mesmo arquivo novamente se necessário
+                input.value = '';
             };
             reader.readAsText(file);
         }
@@ -849,7 +962,6 @@
 
             // Imagens
             for (const [imgId, src] of Object.entries(data.images || {})) {
-                // Mapeamento ID -> Placeholder
                 let phId = '';
                 if(imgId === 'logoImg') phId = 'logoPlaceholder';
                 else if(imgId.includes('view-')) phId = imgId.replace('view-', 'ph-');
@@ -909,7 +1021,6 @@
             else if (select.value === 'baixa') select.classList.add('text-green-600');
         }
 
-        // Fix: function was missing
         function updateStatusColor(select) {
             select.className = "bg-transparent text-[10px] font-bold text-center w-full focus:outline-none " + 
                 (select.value === 'aberto' ? 'text-red-600' : 
@@ -917,7 +1028,12 @@
         }
 
         function clearReport() {
-            if (!confirm("Deseja limpar todo o formulário?")) return;
+            // Verifica se está sujo antes de perguntar
+            if (isReportDirty()) {
+                if (!confirm("Tem a certeza que deseja limpar todo o formulário? Todas as informações não salvas serão perdidas.")) {
+                    return;
+                }
+            }
             
             // Reset Inputs
             document.querySelectorAll('.static-input').forEach(i => i.value = '');
@@ -953,7 +1069,7 @@
                 if(el) { el.style.width = ''; el.style.height = ''; }
             });
 
-            showToast("Formulário limpo.");
+            showToast("Formulário limpo.", 'success');
         }
 
         function removeImage(imgId, placeholderId, inputId) {
